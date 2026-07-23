@@ -1,18 +1,22 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gestor de Obras 3 em 1 - V6 Login + Captcha</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<title>Gestor de Obras - Cloudflare</title>
 <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-50">
-<div id="app"></div>
+<body>
+<div style="text-align:center;padding:20px">
+<div style="background:#000;color:#fff;width:60px;height:60px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;font-weight:bold">MP</div>
+<h1>Gestor de Obras</h1>
+<p>Acesso restrito - Faça login</p>
+<p style="color:#16a34a">🟢 Cloudflare Ativo - gestor-service</p>
+
+<input id="email" placeholder="seu@email.com" style="width:90%;padding:12px;margin:10px 0"><br>
+<input id="senha" type="password" placeholder="senha" style="width:90%;padding:12px;margin:10px 0"><br>
+<button onclick="login()" style="background:#f97316;color:#fff;padding:12px 24px;border:none;border-radius:8px;width:90%;margin-top:10px">Entrar no App</button>
+</div>
 <script src="app.js"></script>
 </body>
 </html>
