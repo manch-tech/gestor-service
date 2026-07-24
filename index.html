@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gestor de Serviço - Manoel Pedra</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="app">
+  <header class="top"><div class="brand"><div class="logo">MP</div><div><h1>Gestor de Serviço</h1><small>wybgqdreqylrojdxijey • só salva ao clicar</small></div></div><div class="status"><span class="dot"></span> Banco conectado</div></header>
+
+  <div class="card header-edit">
+    <h2>📋 Cabeçalho da Empresa - Editável <span class="hint">só aparece no documento se preencher</span></h2>
+    <div class="grid2">
+      <div class="field"><label>Logo URL (opcional)</label><input id="h_logo" placeholder="https://...png" oninput="updateHeader()"></div>
+      <div class="field"><label>Nome da empresa</label><input id="h_nome" value="Manoel Pedra Construção e Reforma" oninput="updateHeader()"></div>
+      <div class="field" style="grid-column:1/-1"><label>Descrição das atividades</label><input id="h_desc" value="Construção, Reforma, Elétrica, Hidráulica, Montagem e Instalação" oninput="updateHeader()"></div>
+      <div class="field"><label>E-mail</label><input id="h_email" placeholder="contato@manoelpedra.com.br" oninput="updateHeader()"></div>
+      <div class="field"><label>Telefone</label><input id="h_tel" placeholder="(47) 99206-9588" oninput="updateHeader()"></div>
+      <div class="field"><label>CNPJ (só aparece se preencher)</label><input id="h_cnpj" placeholder="00.000.000/0001-00" oninput="updateHeader()"></div>
+      <div class="field"><label>Endereço empresa</label><input id="h_end" placeholder="Gaspar - SC" oninput="updateHeader()"></div>
+    </div>
+    <div class="header-preview" id="headerPreview"></div>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="orc">📝 Orçamento</button>
+    <button class="tab" data-tab="os">🔧 Ordem de Serviço</button>
+    <button class="tab" data-tab="termo">✅ Termo de Entrega</button>
+    <button class="tab" data-tab="hist">🔍 Histórico & Busca</button>
+  </nav>
+
+  <main>
+    <section id="tab-orc" class="panel active">
+      <div class="card">
+        <h2>Novo Orçamento <span class="hint">autocomplete só lê, só salva ao clicar</span></h2>
+        <div class="grid2">
+          <div class="field autocomplete-wrap"><label>Nome do cliente *</label><input id="orc_cliente_nome" placeholder="Digite para buscar cliente..."><div id="ac_cliente_nome" class="ac-list"></div></div>
+          <div class="field"><label>Telefone / Whats</label><input id="orc_cliente_tel"></div>
+          <div class="field autocomplete-wrap"><label>Endereço do serviço</label><input id="orc_cliente_end" placeholder="Rua, bairro - Gaspar"><div id="ac_end" class="ac-list"></div></div>
+          <div class="field"><label>CNPJ (se empresa)</label><input id="orc_cliente_cnpj"></div>
+          <div class="field"><label>Especialidade</label><select id="orc_especialidade"><option value="">Selecione</option><option>Alvenaria</option><option>Elétrica</option><option>Hidráulica</option><option>Pintura</option><option>Acabamento</option><option>Montagem e Instalação</option></select></div>
+          <div class="field"><label>Tipo de serviço</label><input id="orc_tipo_serv" placeholder="Ex: Reforma cozinha"></div>
+          <div class="field"><label>Prazo</label><input id="orc_prazo" placeholder="Ex: 15 dias úteis"></div>
+          <div class="field"><label>Forma de pagamento</label><select id="orc_pagto"><option>Pix</option><option>2x sem juros</option><option>3x</option><option>A combinar</option></select></div>
+        </div>
+        <h3>Itens - preço mão de obra + material (autocomplete)</h3>
+        <div id="itensContainer"></div>
+        <button class="btn-outline" onclick="addItem()">+ Adicionar item</button>
+        <div class="totalBox">Total: <b id="orc_total">R$ 0,00</b></div>
+        <div class="grid2">
+          <div class="field"><label>Observações</label><textarea id="orc_obs"></textarea></div>
+          <div class="field"><label>Links arquivos (Google Fotos, Dropbox, Drive) - um por linha</label><textarea id="orc_anexos" placeholder="https://photos.google.com/..."></textarea></div>
+          <div class="field"><label>Código autenticação gov.br</label><input id="orc_govbr" placeholder="Código assinatura eletrônica"></div>
+          <div class="field"><label>Link NFS-e</label><input id="orc_nfse"></div>
+          <div class="field"><label>Link App Serviço</label><input id="orc_app"></div>
+        </div>
+        <div class="actions"><button class="btn-primary" onclick="salvarOrcamento()">💾 Salvar no banco (só agora vai pro BD)</button><button class="btn-secondary" onclick="window.print()">🖨️ Imprimir PDF</button></div>
+      </div>
+    </section>
+
+    <section id="tab-os" class="panel">
+      <div class="card">
+        <h2>Ordem de Serviço</h2>
+        <div class="field autocomplete-wrap"><label>Buscar orçamento anterior (autocomplete)</label><input id="os_busca_orc" placeholder="Digite nome cliente..."><div id="ac_orc" class="ac-list"></div></div>
+        <div class="grid2">
+          <div class="field"><label>Cliente</label><input id="os_cliente"></div>
+          <div class="field"><label>Endereço do serviço</label><input id="os_end"></div>
+          <div class="field"><label>Data início</label><input id="os_inicio" type="date"></div>
+          <div class="field"><label>Prazo</label><input id="os_prazo"></div>
+          <div class="field"><label>Equipe</label><input id="os_equipe"></div>
+          <div class="field"><label>Valor</label><input id="os_valor" type="number"></div>
+        </div>
+        <div class="field"><label>Escopo detalhado</label><textarea id="os_escopo" rows="5"></textarea></div>
+        <div class="field"><label>Links arquivos</label><textarea id="os_anexos"></textarea></div>
+        <div class="field"><label>Código gov.br OS</label><input id="os_govbr"></div>
+        <div class="actions"><button class="btn-primary" onclick="salvarOS()">💾 Salvar OS (só agora vai pro BD)</button><button class="btn-secondary" onclick="window.print()">🖨️ Imprimir OS</button></div>
+      </div>
+    </section>
+
+    <section id="tab-termo" class="panel">
+      <div class="card">
+        <h2>Termo de Entrega</h2>
+        <div class="field autocomplete-wrap"><label>Buscar OS</label><input id="termo_busca_os" placeholder="Digite cliente..."><div id="ac_os" class="ac-list"></div></div>
+        <div class="grid2">
+          <div class="field"><label>Cliente</label><input id="termo_cliente"></div>
+          <div class="field"><label>Endereço do serviço</label><input id="termo_end"></div>
+          <div class="field"><label>Data entrega</label><input id="termo_data" type="date"></div>
+          <div class="field"><label>Código gov.br Termo</label><input id="termo_govbr"></div>
+        </div>
+        <h3>Checklist de entrega</h3>
+        <div id="checklist" class="checklist"></div>
+        <div class="field"><label>Observações finais</label><textarea id="termo_obs"></textarea></div>
+        <div class="field"><label>Links fotos entrega (Google Fotos)</label><textarea id="termo_anexos"></textarea></div>
+        <div class="actions"><button class="btn-primary" onclick="salvarTermo()">💾 Salvar Termo (só agora vai pro BD)</button><button class="btn-secondary" onclick="window.print()">🖨️ Imprimir Termo</button></div>
+      </div>
+    </section>
+
+    <section id="tab-hist" class="panel">
+      <div class="card">
+        <h2>Histórico & Busca inteligente</h2>
+        <input id="busca_global" placeholder="🔍 Buscar por serviço, material, nome, endereço... ex: reboco, Gaspar" oninput="buscaGlobal()" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;margin-bottom:12px">
+        <div class="hist-grid"><div><h3>Orçamentos</h3><div id="hist_orc"></div></div><div><h3>OS</h3><div id="hist_os"></div></div><div><h3>Termos</h3><div id="hist_termo"></div></div></div>
+      </div>
+    </section>
+  </main>
+  <div id="toast" class="toast"></div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
