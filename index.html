@@ -3,320 +3,304 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gestor Service - V4.3</title>
+<title>Gestor Service - V4.3 Consagrado</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<style>body{font-family:Inter,system-ui,sans-serif;background:#f6f5f3}</style>
+<style>
+*{font-family:Inter,system-ui,sans-serif}
+input,textarea,select{color:#000 !important;background:#fff !important;border:1px solid #d4d4d8 !important}
+input::placeholder,textarea::placeholder{color:#a1a1aa !important}
+body{background:#f6f5f3}
+</style>
 </head>
-<body>
-<div id="root"></div>
-<script type="module">
-import React, {useState,useEffect} from "https://esm.sh/react@18.2.0";
-import {createRoot} from "https://esm.sh/react-dom@18.2.0/client";
-import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/+esm";
-const supabase = createClient("https://oquqswjstquwqfobdcdi.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xdXFzd2pzdHF1d3Fmb2JkY2RpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc4NTQzNjksImV4cCI6MjA2MzQzMDM2OX0.6mF7X9P8vQ8Z8xQ9y0z1a2b3c4d5e6f7g8h9i0");
-function checkLogin(email, pass){
-  const e=(email||"").toLowerCase().trim();
-  const p=(pass||"").trim();
-  if(p==="manoel123"||p==="admin") return true;
-  if(e.includes("manoel@") && p==="123456") return true;
-  if(e==="manoel" && p==="123456") return true;
-  if(e==="admin" && p==="admin") return true;
+<body class="min-h-screen">
+<div id="app"></div>
+<script>
+const SUPABASE_URL="https://oquqswjstquwqfobdcdi.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xdXFzd2pzdHF1d3Fmb2JkY2RpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc4NTQzNjksImV4cCI6MjA2MzQzMDM2OX0.6mF7X9P8vQ8Z8xQ9y0z1a2b3c4d5e6f7g8h9i0";
+const CLIENT_ID = "1059683154604-9qus1i6rv4hfq3a90m6d5bdd0cedtr5g.apps.googleusercontent.com";
+
+let clienteNome="", clienteTel="", clienteEnd="", clienteCnpj="", especialidades="", tipoServico="", prazo="", formaPag="", codigoGov="", observacoes="";
+let googleContacts=[], showGoogleModal=false, googleLoading=false;
+let itens=[{id:1, servico:"Conserto de cano pvc vazando dentro da parede", un:"pt", qtd:1, maoObra:600, material:150, tipoMat:"Cimento, areia, 50cm tubo 20mm, cola, lixa, argamassa ac2, rejunte"}];
+let toast="", showPopup=false, saving=false, logged=false, userEmail="";
+
+function checkLogin(e,p){
+  e=(e||"").toLowerCase().trim(); p=(p||"").trim();
+  if(e==="manchtec@gmail.com" && p.length>=1) return true;
+  if(p==="manoel123"||p==="admin"||p==="123456") return true;
+  if(e==="manoel"||e==="admin") return true;
   return false;
 }
-function Login({onLogin}){
-  const [email,setEmail]=useState("manchtec@gmail.com");
-  const [pass,setPass]=useState("");
-  const [err,setErr]=useState("");
-  const [loading,setLoading]=useState(false);
-  const doLogin=async(e)=>{
-    e?.preventDefault();
-    setErr("");
-    if(!email||!pass){ setErr("Preencha e-mail e senha"); return; }
-    setLoading(true);
-    try{
-      try{
-        const em=email.includes("@")?email:`${email}@gestor.local`;
-        const {data,error}=await supabase.auth.signInWithPassword({email:em,password:pass});
-        if(!error && data?.session){
-          localStorage.setItem("mp_session",JSON.stringify({email,loggedAt:new Date().toISOString(),via:"supabase"}));
-          onLogin(email); setLoading(false); return;
-        }
-      }catch{}
-      if(checkLogin(email,pass)){
-        localStorage.setItem("mp_session",JSON.stringify({email,loggedAt:new Date().toISOString(),via:"local"}));
-        onLogin(email);
-      } else {
-        setErr("Credenciais inválidas. Tente: manoel123 / admin ou manoel + 123456");
-      }
-    }finally{ setLoading(false); }
+function total(){return itens.reduce((s,i)=>s+((parseFloat(i.maoObra)||0)+(parseFloat(i.material)||0))*(parseFloat(i.qtd)||0),0)}
+
+function showToastMsg(m){toast=m; render(); setTimeout(()=>{toast=""; render()},4000)}
+
+async function doSave(){
+  saving=true; render();
+  let payload={
+    cliente_nome: clienteNome || "Cliente não informado",
+    cliente_telefone: clienteTel||"",
+    cliente_endereco: clienteEnd||"",
+    cliente_cnpj: clienteCnpj||"",
+    especialidades: especialidades||"",
+    tipo_servico: tipoServico||"",
+    prazo: prazo||"",
+    forma_pagamento: formaPag||"",
+    codigo_gov: codigoGov||"",
+    observacoes: observacoes||"",
+    itens: itens,
+    total: total(),
+    status:"rascunho",
+    header_config:{},
+    anexos:[]
   };
-  return React.createElement("div",{className:"min-h-screen flex items-center justify-center p-4 bg-zinc-900"},
-    React.createElement("div",{className:"bg-white rounded-[24px] p-8 max-w-[380px] w-full"},
-      React.createElement("div",{className:"w-12 h-12 bg-zinc-900 text-white rounded-full flex items-center justify-center font-bold mb-4"},"GS"),
-      React.createElement("h1",{className:"text-[22px] font-bold"},"Gestor Service"),
-      React.createElement("p",{className:"text-[13px] text-zinc-500 mb-6"},"Cabeçalho editável • V4.3 • Login"),
-      React.createElement("form",{onSubmit:doLogin,className:"space-y-3"},
-        React.createElement("input",{value:email,onChange:e=>setEmail(e.target.value),placeholder:"Usuário",className:"w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 text-[14px] text-black outline-none font-medium"}),
-        React.createElement("input",{type:"password",value:pass,onChange:e=>setPass(e.target.value),placeholder:"Senha",className:"w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 text-[14px] text-black outline-none font-medium"}),
-        err&&React.createElement("div",{className:"text-[12px] text-red-600 bg-red-50 rounded-xl p-3"},err),
-        React.createElement("button",{type:"submit",disabled:loading,className:"w-full bg-zinc-900 text-white rounded-full py-3.5 font-semibold text-[15px]"},loading?"Entrando...":"Entrar"),
-        React.createElement("div",{className:"text-[11px] text-zinc-400 text-center mt-3"},"manoel123 / admin • manoel + 123456 • admin + admin")
-      )
-    )
-  );
-}
-function AppMain({user,onLogout}){
-  const [clienteNome,setClienteNome]=useState("");
-  const [clienteTel,setClienteTel]=useState("");
-  const [clienteEnd,setClienteEnd]=useState("");
-  const [clienteCnpj,setClienteCnpj]=useState("");
-  const [especialidades,setEspecialidades]=useState("");
-  const [tipoServico,setTipoServico]=useState("");
-  const [prazo,setPrazo]=useState("");
-  const [formaPag,setFormaPag]=useState("");
-  const [codigoGov,setCodigoGov]=useState("");
-  const [linkNfse,setLinkNfse]=useState("");
-  const [linkApp,setLinkApp]=useState("");
-  const [observacoes,setObservacoes]=useState("");
-  const [itens,setItens]=useState([{id:Date.now(), servico:"Conserto de cano pvc vazando dentro da parede", un:"pt", qtd:1, maoObra:600, material:150, tipoMat:"Cimento, areia, 50cm tubo 20mm, cola, lixa, argamassa ac2, rejunte"}]);
-  const [toast,setToast]=useState("");
-  const [showPopup,setShowPopup]=useState(false);
-
-  const [showGoogleModal,setShowGoogleModal]=useState(false);
-  const [googleContacts,setGoogleContacts]=useState([]);
-  const [googleLoading,setGoogleLoading]=useState(false);
-
-  const importFromGoogle = () => {
-    // CONFIG: troque pelo seu Client ID do Google Cloud Console
-    const CLIENT_ID = "1059683154604-9qus1i6rv4hfq3a90m6d5bdd0cedtr5g.apps.googleusercontent.com";
-    // Se não configurou, mostra instrução
-    if(CLIENT_ID.includes("SEU_CLIENT_ID")){
-      showToast("⚠️ Configure seu Google Client ID no código - veja instruções");
-      // Fallback: tenta usar navigator.contacts se disponível (Android/Chrome)
-      if('contacts' in navigator && 'ContactsManager' in window){
-        // @ts-ignore
-        navigator.contacts.select(['name','tel'], {multiple:true}).then(contacts=>{
-          if(contacts.length>0){
-            const c = contacts[0];
-            setClienteNome(c.name ? c.name[0] : "");
-            setClienteTel(c.tel ? c.tel[0] : "");
-            showToast("✅ Contato importado do celular");
-          }
-        }).catch(()=>showToast("Selecione um contato"));
-      } else {
-        // Abre modal simples para colar contato
-        setShowGoogleModal(true);
-      }
-      return;
-    }
-
-    setGoogleLoading(true);
-    try{
-      const tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: "https://www.googleapis.com/auth/contacts.readonly",
-        callback: async (response) => {
-          if(response.access_token){
-            try{
-              const res = await fetch("https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers,emailAddresses&pageSize=100", {
-                headers: { Authorization: `Bearer ${response.access_token}` }
-              });
-              const data = await res.json();
-              const list = (data.connections||[]).map(p=>{
-                const name = p.names && p.names[0] ? p.names[0].displayName : "Sem nome";
-                const phone = p.phoneNumbers && p.phoneNumbers[0] ? p.phoneNumbers[0].value : "";
-                const email = p.emailAddresses && p.emailAddresses[0] ? p.emailAddresses[0].value : "";
-                return {name, phone, email};
-              });
-              setGoogleContacts(list);
-              setShowGoogleModal(true);
-            }catch(e){ showToast("Erro ao buscar contatos"); }
-          }
-          setGoogleLoading(false);
-        }
-      });
-      tokenClient.requestAccessToken();
-    }catch(e){ setGoogleLoading(false); showToast("Erro Google Auth"); }
-  };
-
-  const selectGoogleContact = (c) => {
-    setClienteNome(c.name||"");
-    setClienteTel(c.phone||"");
-    setShowGoogleModal(false);
-    showToast("✅ "+c.name+" importado");
-  };
-
-  const [saving,setSaving]=useState(false);
-  const addItem=()=>setItens([...itens,{id:Date.now(),servico:"",un:"pt",qtd:1,maoObra:0,material:0,tipoMat:""}]);
-  const updItem=(id,field,val)=>setItens(itens.map(i=>i.id===id?{...i,[field]:val}:i));
-  const delItem=(id)=>setItens(itens.filter(i=>i.id!==id));
-  const total=itens.reduce((s,i)=>s+((parseFloat(i.maoObra)||0)+(parseFloat(i.material)||0))*(parseFloat(i.qtd)||0),0);
-  const showToast=(msg)=>{setToast(msg); setTimeout(()=>setToast(""),4000);};
-  const doSave=async()=>{
-    setSaving(true);
-    let payload={
-      cliente_nome: clienteNome || "Cliente não informado",
-      cliente_telefone: clienteTel || "",
-      cliente_endereco: clienteEnd || "",
-      cliente_cnpj: clienteCnpj || "",
-      especialidades: especialidades || "",
-      tipo_servico: tipoServico || "",
-      prazo: prazo || "",
-      forma_pagamento: formaPag || "",
-      codigo_gov: codigoGov || "",
-      link_nfse: linkNfse || "",
-      link_app: linkApp || "",
-      observacoes: observacoes || "",
-      itens: itens,
-      total: total,
-      status: "rascunho",
-      header_config: {},
-      anexos: []
-    };
+  try{
     let tries=0;
     while(tries<12){
-      const {error}=await supabase.from("orcamentos").insert([payload]);
-      if(!error){ showToast("✅ Salvo! R$ "+total.toLocaleString("pt-BR",{minimumFractionDigits:2})); setSaving(false); setShowPopup(false); return; }
-      const msg=error.message||"";
-      const m=msg.match(/Could not find the '([^']+)' column/);
+      let res=await fetch(SUPABASE_URL+"/rest/v1/orcamentos",{
+        method:"POST",
+        headers:{
+          "apikey":SUPABASE_KEY,
+          "Authorization":"Bearer "+SUPABASE_KEY,
+          "Content-Type":"application/json",
+          "Prefer":"return=minimal"
+        },
+        body: JSON.stringify(payload)
+      });
+      if(res.ok){ showToastMsg("✅ Salvo! R$ "+total().toLocaleString('pt-BR',{minimumFractionDigits:2})); saving=false; showPopup=false; render(); return;}
+      let txt=await res.text();
+      let m=txt.match(/Could not find the '([^']+)' column/);
       if(m){ delete payload[m[1]]; tries++; continue; }
       if(tries>5){
-        const min={cliente_nome:payload.cliente_nome, total:total, itens:itens};
-        const {error:e2}=await supabase.from("orcamentos").insert([min]);
-        if(!e2){ showToast("✅ Salvo (compatibilidade)"); setSaving(false); setShowPopup(false); return; }
+        let min={cliente_nome:payload.cliente_nome, total:total(), itens:itens};
+        let res2=await fetch(SUPABASE_URL+"/rest/v1/orcamentos",{
+          method:"POST",
+          headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Content-Type":"application/json","Prefer":"return=minimal"},
+          body: JSON.stringify(min)
+        });
+        if(res2.ok){ showToastMsg("✅ Salvo (compatibilidade)"); saving=false; showPopup=false; render(); return;}
       }
-      showToast("Erro: "+msg); setSaving(false); return;
+      showToastMsg("Erro: "+txt.slice(0,120)); saving=false; render(); return;
     }
-    setSaving(false);
-  };
-  const handleSaveClick=()=>{
-    const vazio=!clienteNome || itens.length===0 || !itens[0].servico;
-    if(vazio){ setShowPopup(true); } else { doSave(); }
-  };
-  return React.createElement("div",{className:"min-h-screen"},
-    React.createElement("div",{className:"bg-zinc-900 text-white px-4 py-4 flex justify-between items-center"},
-      React.createElement("div",{className:"flex items-center gap-3"},
-        React.createElement("div",{className:"w-10 h-10 bg-white text-black rounded-full flex items-center justify-center font-bold"},"GS"),
-        React.createElement("div",null,
-          React.createElement("div",{className:"font-semibold text-[15px]"},"Gestor Service"),
-          React.createElement("div",{className:"text-[12px] text-zinc-400"},"Cabeçalho editável • Termo serviço • V4.3 • "+user)
-        )
-      ),
-      React.createElement("button",{onClick:onLogout,className:"text-[13px] border border-zinc-700 rounded-full px-4 py-1.5"},"Sair")
-    ),
-    React.createElement("div",{className:"max-w-[720px] mx-auto p-4 space-y-4"},
-      React.createElement("div",{className:"bg-white rounded-[22px] p-5 space-y-3 border border-zinc-200"},
-        React.createElement("div",{className:"flex gap-2"},
-          React.createElement("input",{value:clienteNome,onChange:e=>setClienteNome(e.target.value),placeholder:"Nome do cliente (opcional)",className:"flex-1 bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] placeholder-zinc-400 outline-none font-medium"}),
-          React.createElement("button",{type:"button",onClick:importFromGoogle,disabled:googleLoading,className:"w-12 h-12 bg-zinc-900 text-white rounded-xl flex items-center justify-center font-bold text-[20px] hover:bg-black shrink-0"}, googleLoading?"...":"+")
-        ),
-        React.createElement("div",{className:"grid grid-cols-2 gap-3"},
-          React.createElement("input",{value:clienteTel,onChange:e=>setClienteTel(e.target.value),placeholder:"Telefone (opcional)",className:"w-full bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] placeholder-zinc-400 outline-none font-medium"}),
-          React.createElement("input",{value:clienteCnpj,onChange:e=>setClienteCnpj(e.target.value),placeholder:"CNPJ/CPF (opcional)",className:"w-full bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] placeholder-zinc-400 outline-none font-medium"})
-        ),
-        React.createElement("input",{value:clienteEnd,onChange:e=>setClienteEnd(e.target.value),placeholder:"Endereço da obra (opcional)",className:"w-full bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] placeholder-zinc-400 outline-none font-medium"}),
-        React.createElement("div",{className:"grid grid-cols-2 gap-3"},
-          React.createElement("input",{value:especialidades,onChange:e=>setEspecialidades(e.target.value),placeholder:"Especialidades (opcional)",className:"w-full bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] placeholder-zinc-400 outline-none font-medium"}),
-          React.createElement("input",{value:tipoServico,onChange:e=>setTipoServico(e.target.value),placeholder:"Tipo serviço (opcional)",className:"w-full bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] placeholder-zinc-400 outline-none font-medium"})
-        ),
-        React.createElement("div",{className:"grid grid-cols-2 gap-3"},
-          React.createElement("input",{value:prazo,onChange:e=>setPrazo(e.target.value),placeholder:"Prazo (opcional)",className:"w-full bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] placeholder-zinc-400 outline-none font-medium"}),
-          React.createElement("input",{value:formaPag,onChange:e=>setFormaPag(e.target.value),placeholder:"Forma pagto (opcional)",className:"w-full bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] placeholder-zinc-400 outline-none font-medium"})
-        ),
-        React.createElement("input",{value:codigoGov,onChange:e=>setCodigoGov(e.target.value),placeholder:"Código gov (opcional)",className:"w-full bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] placeholder-zinc-400 outline-none font-medium"}),
-        React.createElement("button",{onClick:handleSaveClick, disabled:saving, className:"w-full bg-white text-black rounded-full py-3.5 font-semibold text-[15px] mt-2"}, saving?"Salvando...":"Salvar orçamento"),
-        React.createElement("div",{className:"text-[11px] text-zinc-500 text-center mt-2"},"Nenhum campo obrigatório • Alerta só avisa, ao fechar permite salvar")
-      ),
-      React.createElement("div",{className:"bg-white rounded-[22px] p-5"},
-        React.createElement("div",{className:"flex justify-between items-center mb-4"},
-          React.createElement("h3",{className:"font-semibold text-[16px]"},"Itens do serviço"),
-          React.createElement("button",{onClick:addItem,className:"bg-zinc-900 text-white rounded-full px-4 py-2 text-[13px]"},"+ Adicionar item")
-        ),
-        itens.map(item=>React.createElement("div",{key:item.id,className:"bg-zinc-50 border border-zinc-200 rounded-[16px] p-4 mb-3"},
-          React.createElement("div",{className:"text-[11px] text-zinc-500 mb-1"},"SERVIÇO / MATERIAL"),
-          React.createElement("input",{value:item.servico,onChange:e=>updItem(item.id,"servico",e.target.value),placeholder:"Conserto de cano pvc vazando...",className:"w-full bg-white border border-zinc-300 rounded-xl px-3 py-2.5 text-[14px] text-black outline-none font-medium mb-3"}),
-          React.createElement("div",{className:"grid grid-cols-4 gap-2 mb-3"},
-            React.createElement("div",null,React.createElement("div",{className:"text-[11px] text-zinc-500 mb-1"},"UN"),React.createElement("select",{value:item.un,onChange:e=>updItem(item.id,"un",e.target.value),className:"w-full bg-white border border-zinc-300 rounded-xl px-2 py-2.5 text-[14px] text-black font-medium bg-white"}, ["pt","m","m2","m3","un","h","dia","vb"].map(u=>React.createElement("option",{key:u,value:u},u)))),
-            React.createElement("div",null,React.createElement("div",{className:"text-[11px] text-zinc-500 mb-1"},"QTD"),React.createElement("input",{value:item.qtd,onChange:e=>updItem(item.id,"qtd",e.target.value),className:"w-full bg-white border border-zinc-300 rounded-xl px-2 py-2.5 text-[14px] text-black font-medium bg-white"})),
-            React.createElement("div",null,React.createElement("div",{className:"text-[11px] text-zinc-500 mb-1"},"MÃO OBRA"),React.createElement("input",{value:item.maoObra,onChange:e=>updItem(item.id,"maoObra",e.target.value),placeholder:"600",className:"w-full bg-white border border-zinc-300 rounded-xl px-2 py-2.5 text-[14px] text-black font-medium bg-white"})),
-            React.createElement("div",null,React.createElement("div",{className:"text-[11px] text-zinc-500 mb-1"},"MATERIAL"),React.createElement("input",{value:item.material,onChange:e=>updItem(item.id,"material",e.target.value),placeholder:"150",className:"w-full bg-white border border-zinc-300 rounded-xl px-2 py-2.5 text-[14px] text-black font-medium bg-white"}))
-          ),
-          React.createElement("div",{className:"flex gap-2 items-end"},
-            React.createElement("div",{className:"flex-1"},React.createElement("div",{className:"text-[11px] text-zinc-500 mb-1"},"TIPO MAT."),React.createElement("input",{value:item.tipoMat,onChange:e=>updItem(item.id,"tipoMat",e.target.value),placeholder:"Cimento, areia, 50cm tubo 20mm...",className:"w-full bg-white border border-zinc-200 rounded-xl px-3 py-2.5 text-[14px]"})),
-            React.createElement("button",{onClick:()=>delItem(item.id),className:"w-10 h-10 bg-white border border-zinc-200 rounded-full flex items-center justify-center"},"✕")
-          ),
-          React.createElement("div",{className:"text-[12px] text-zinc-500 mt-2"},"Subtotal: R$ "+(((parseFloat(item.maoObra)||0)+(parseFloat(item.material)||0))*(parseFloat(item.qtd)||0)).toLocaleString("pt-BR",{minimumFractionDigits:2}))
-        )),
-        React.createElement("div",{className:"text-right font-bold text-[18px] mt-3"},"Total: R$ "+total.toLocaleString("pt-BR",{minimumFractionDigits:2}))
-      ),
-      React.createElement("div",{className:"bg-white rounded-[22px] p-5"},
-        React.createElement("div",{className:"text-[12px] font-semibold text-zinc-500 mb-2"},"OBSERVAÇÕES (opcional)"),
-        React.createElement("textarea",{value:observacoes,onChange:e=>setObservacoes(e.target.value),placeholder:"Na primeira etapa será rompida a parede...",rows:4,className:"w-full bg-white border border-zinc-300 rounded-xl px-3 py-3 text-[14px] text-black outline-none font-medium"})
-      )
-    ),
-    showPopup && React.createElement("div",{className:"fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50",onClick:()=>setShowPopup(false)},
-      React.createElement("div",{className:"bg-white rounded-[20px] p-6 max-w-[360px] w-full",onClick:e=>e.stopPropagation()},
-        React.createElement("div",{className:"text-[18px] font-bold mb-2"},"⚠️ Campos vazios"),
-        React.createElement("div",{className:"text-[14px] text-zinc-600 mb-5"},"Isso é só um alerta. Pode fechar e salvar mesmo assim. Será salvo como 'Cliente não informado' se necessário."),
-        React.createElement("div",{className:"flex gap-3"},
-          React.createElement("button",{onClick:()=>setShowPopup(false),className:"flex-1 border border-zinc-200 rounded-full py-3 text-[14px]"},"Fechar alerta"),
-          React.createElement("button",{onClick:doSave,className:"flex-1 bg-zinc-900 text-white rounded-full py-3 text-[14px] font-semibold"},"Salvar mesmo assim")
-        )
-      )
-    ),
+  }catch(e){ showToastMsg("Erro rede: "+e.message); }
+  saving=false; render();
+}
 
-    showGoogleModal && React.createElement("div",{className:"fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]",onClick:()=>setShowGoogleModal(false)},
-      React.createElement("div",{className:"bg-white rounded-[20px] p-5 max-w-[400px] w-full max-h-[80vh] overflow-hidden flex flex-col",onClick:e=>e.stopPropagation()},
-        React.createElement("div",{className:"flex justify-between items-center mb-4"},
-          React.createElement("div",{className:"font-bold text-[16px]"},"Contatos do Google"),
-          React.createElement("button",{onClick:()=>setShowGoogleModal(false),className:"w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center"},"✕")
-        ),
-        googleContacts.length===0 ? React.createElement("div",{className:"text-center py-10"},
-          React.createElement("div",{className:"text-[13px] text-zinc-500 mb-3"},"Para importar direto do Google:"),
-          React.createElement("div",{className:"bg-zinc-50 rounded-xl p-4 text-left text-[12px] leading-relaxed"},
-            React.createElement("div",{className:"font-bold mb-2"},"1. Crie Client ID no Google Cloud:"),
-            React.createElement("div",null,"• Acesse console.cloud.google.com"),
-            React.createElement("div",null,"• Ative People API"),
-            React.createElement("div",null,"• Crie OAuth 2.0 Client ID"),
-            React.createElement("div",null,"• Adicione seu domínio: manch-tech.github.io"),
-            React.createElement("div",{className:"mt-3 font-bold"},"2. Cole o Client ID no código:"),
-            React.createElement("div",{className:"bg-zinc-900 text-white rounded px-2 py-1 mt-1 font-mono text-[11px]"},"const CLIENT_ID = "SEU_ID.apps.googleusercontent.com""),
-            React.createElement("div",{className:"mt-4 p-3 bg-amber-50 rounded-xl"},
-              React.createElement("div",{className:"font-bold text-amber-800"},"Alternativa rápida (sem Google):"),
-              React.createElement("div",{className:"mt-1"},"No celular Android, o botão + já tenta abrir a agenda nativa automaticamente.")
-            )
-          )
-        ) : React.createElement("div",{className:"overflow-auto flex-1 space-y-2"},
-          googleContacts.map((c,i)=>React.createElement("button",{key:i,onClick:()=>selectGoogleContact(c),className:"w-full text-left border border-zinc-200 rounded-xl p-3 hover:bg-zinc-50"},
-            React.createElement("div",{className:"font-bold text-[14px] text-black"},c.name),
-            React.createElement("div",{className:"text-[12px] text-zinc-500"},c.phone + (c.email ? " • "+c.email : ""))
-          ))
-        )
-      )
-    ),
-    toast && React.createElement("div",{className:"fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-[13px] px-5 py-3 rounded-full shadow-xl z-50"},toast)
-  );
+function handleSaveClick(){
+  let vazio=!clienteNome || itens.length===0 || !itens[0].servico;
+  if(vazio){ showPopup=true; render(); } else { doSave(); }
 }
-function Root(){
-  const [logged,setLogged]=useState(false);
-  const [user,setUser]=useState("");
-  const [checked,setChecked]=useState(false);
-  useEffect(()=>{
-    try{
-      const s=localStorage.getItem("mp_session");
-      if(s){ const d=JSON.parse(s); if(d&&d.email){ setLogged(true); setUser(d.email); } }
-    }catch{}
-    setChecked(true);
-  },[]);
-  const onLogin=(email)=>{ setLogged(true); setUser(email); };
-  const onLogout=()=>{ try{localStorage.removeItem("mp_session"); supabase.auth.signOut();}catch{} setLogged(false); setUser(""); };
-  if(!checked) return React.createElement("div",{className:"min-h-screen bg-zinc-900"});
-  if(!logged) return React.createElement(Login,{onLogin});
-  return React.createElement(AppMain,{user,onLogout});
+
+async function importGoogle(){
+  // 1. Tenta API nativa do celular primeiro (sem precisar de Google)
+  try{
+    if('contacts' in navigator && 'ContactsManager' in window){
+      const props=['name','tel','email'];
+      const contacts=await navigator.contacts.select(props,{multiple:false});
+      if(contacts && contacts[0]){
+        clienteNome=contacts[0].name ? contacts[0].name[0] : clienteNome;
+        clienteTel=contacts[0].tel ? contacts[0].tel[0] : clienteTel;
+        showToastMsg("✅ Contato importado: "+clienteNome);
+        render();
+        return;
+      }
+    }
+  }catch(e){}
+
+  // 2. Usa Google People API com seu CLIENT_ID
+  googleLoading=true; render();
+  try{
+    if(typeof google==='undefined' || !google.accounts){
+      showToastMsg("Carregando Google... tente novamente em 2s");
+      googleLoading=false; render();
+      setTimeout(()=>importGoogle(),1500);
+      return;
+    }
+    const tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: "https://www.googleapis.com/auth/contacts.readonly",
+      callback: async (resp)=>{
+        if(resp.access_token){
+          try{
+            const res = await fetch("https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers,emailAddresses&pageSize=200",{
+              headers:{Authorization:"Bearer "+resp.access_token}
+            });
+            const data = await res.json();
+            googleContacts = (data.connections||[]).map(p=>({
+              name: p.names?.[0]?.displayName || "Sem nome",
+              phone: p.phoneNumbers?.[0]?.value || "",
+              email: p.emailAddresses?.[0]?.value || ""
+            }));
+            if(googleContacts.length===0){
+              showToastMsg("Nenhum contato encontrado na conta Google");
+            } else {
+              showGoogleModal=true;
+            }
+          }catch(e){ showToastMsg("Erro ao buscar contatos: "+e.message); }
+        }
+        googleLoading=false; render();
+      }
+    });
+    tokenClient.requestAccessToken();
+  }catch(e){
+    googleLoading=false;
+    showToastMsg("Erro Google: "+e.message);
+    render();
+  }
 }
-const root=createRoot(document.getElementById("root"));
-root.render(React.createElement(Root));
+
+function selectGoogleContact(idx){
+  const c = googleContacts[idx];
+  if(c){
+    clienteNome=c.name||"";
+    clienteTel=c.phone||"";
+    showGoogleModal=false;
+    showToastMsg("✅ "+c.name+" importado");
+    render();
+  }
+}
+
+function render(){
+  const app=document.getElementById("app");
+  if(!logged){
+    app.innerHTML=`
+    <div class="min-h-screen flex items-center justify-center p-4 bg-zinc-900">
+      <div class="bg-white rounded-[24px] p-8 max-w-[380px] w-full">
+        <div class="w-12 h-12 bg-zinc-900 text-white rounded-full flex items-center justify-center font-bold mb-4">GS</div>
+        <h1 class="text-[22px] font-bold text-black">Gestor Service</h1>
+        <p class="text-[13px] text-zinc-500 mb-6">Cabeçalho editável • V4.3 • Login</p>
+        <div class="space-y-3">
+          <input id="email" value="${userEmail||'manchtec@gmail.com'}" placeholder="manchtec@gmail.com" class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 text-[14px] text-black font-medium">
+          <input id="pass" type="password" placeholder="senha (qualquer uma)" class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 text-[14px] text-black font-medium">
+          <div id="err" class="hidden text-[12px] text-red-600 bg-red-50 rounded-xl p-3"></div>
+          <button onclick="login()" class="w-full bg-zinc-900 text-white rounded-full py-3.5 font-semibold">Entrar</button>
+          <div class="text-[11px] text-zinc-400 text-center">manchtec@gmail.com + qualquer senha<br>ou manoel123 / admin</div>
+        </div>
+      </div>
+    </div>`;
+    document.getElementById("email")?.addEventListener("input",e=>userEmail=e.target.value);
+    return;
+  }
+
+  let itensHtml=itens.map((it,idx)=>`
+    <div class="bg-zinc-50 border border-zinc-200 rounded-[16px] p-4 mb-3">
+      <div class="text-[11px] text-zinc-500 mb-1 font-bold">SERVIÇO / MATERIAL</div>
+      <input value="${it.servico}" oninput="itens[${idx}].servico=this.value" placeholder="Conserto de cano pvc..." class="w-full bg-white border border-zinc-300 rounded-xl px-3 py-2.5 text-[14px] text-black font-medium mb-3">
+      <div class="grid grid-cols-4 gap-2 mb-3">
+        <div><div class="text-[11px] text-zinc-500 mb-1 font-bold">UN</div><select onchange="itens[${idx}].un=this.value" class="w-full bg-white border border-zinc-300 rounded-xl px-2 py-2.5 text-[14px] text-black font-medium"><option ${it.un==='pt'?'selected':''}>pt</option><option ${it.un==='m'?'selected':''}>m</option><option ${it.un==='m2'?'selected':''}>m2</option><option ${it.un==='un'?'selected':''}>un</option><option ${it.un==='h'?'selected':''}>h</option><option ${it.un==='dia'?'selected':''}>dia</option><option ${it.un==='vb'?'selected':''}>vb</option></select></div>
+        <div><div class="text-[11px] text-zinc-500 mb-1 font-bold">QTD</div><input value="${it.qtd}" oninput="itens[${idx}].qtd=this.value; renderTotal()" class="w-full bg-white border border-zinc-300 rounded-xl px-2 py-2.5 text-[14px] text-black font-medium"></div>
+        <div><div class="text-[11px] text-zinc-500 mb-1 font-bold">MÃO OBRA</div><input value="${it.maoObra}" oninput="itens[${idx}].maoObra=this.value; renderTotal()" placeholder="600" class="w-full bg-white border border-zinc-300 rounded-xl px-2 py-2.5 text-[14px] text-black font-medium"></div>
+        <div><div class="text-[11px] text-zinc-500 mb-1 font-bold">MATERIAL</div><input value="${it.material}" oninput="itens[${idx}].material=this.value; renderTotal()" placeholder="150" class="w-full bg-white border border-zinc-300 rounded-xl px-2 py-2.5 text-[14px] text-black font-medium"></div>
+      </div>
+      <div class="flex gap-2 items-end">
+        <div class="flex-1"><div class="text-[11px] text-zinc-500 mb-1 font-bold">TIPO MAT.</div><input value="${it.tipoMat}" oninput="itens[${idx}].tipoMat=this.value" placeholder="Cimento, areia..." class="w-full bg-white border border-zinc-300 rounded-xl px-3 py-2.5 text-[14px] text-black font-medium"></div>
+        <button onclick="itens.splice(${idx},1); if(itens.length===0) itens=[{id:Date.now(),servico:'',un:'pt',qtd:1,maoObra:0,material:0,tipoMat:''}]; render()" class="w-10 h-10 bg-white border border-zinc-200 rounded-full">✕</button>
+      </div>
+      <div class="text-[12px] text-zinc-500 mt-2">Subtotal: R$ ${(((parseFloat(it.maoObra)||0)+(parseFloat(it.material)||0))*(parseFloat(it.qtd)||0)).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+    </div>
+  `).join("");
+
+  app.innerHTML=`
+  <div class="min-h-screen">
+    <div class="bg-zinc-900 text-white px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-3"><div class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center font-bold">GS</div><div><div class="font-semibold text-[15px]">Gestor Service</div><div class="text-[12px] text-zinc-400">Cabeçalho editável • Termo serviço • V4.3 • ${userEmail}</div></div></div>
+      <button onclick="logged=false; userEmail=''; render()" class="text-[13px] border border-zinc-700 rounded-full px-4 py-1.5">Sair</button>
+    </div>
+    <div class="max-w-[720px] mx-auto p-4 space-y-4">
+      <div class="bg-white rounded-[22px] p-5 space-y-3 border border-zinc-200">
+        <div class="flex gap-2">
+          <input id="cNome" value="${clienteNome}" oninput="clienteNome=this.value" placeholder="Nome do cliente (opcional)" class="flex-1 bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] font-medium">
+          <button onclick="importGoogle()" class="w-12 h-12 bg-zinc-900 text-white rounded-xl font-bold text-[20px] hover:bg-black">+</button>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <input value="${clienteTel}" oninput="clienteTel=this.value" placeholder="Telefone (opcional)" class="w-full bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] font-medium">
+          <input value="${clienteCnpj}" oninput="clienteCnpj=this.value" placeholder="CNPJ/CPF (opcional)" class="w-full bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] font-medium">
+        </div>
+        <input value="${clienteEnd}" oninput="clienteEnd=this.value" placeholder="Endereço da obra (opcional)" class="w-full bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] font-medium">
+        <div class="grid grid-cols-2 gap-3">
+          <input value="${especialidades}" oninput="especialidades=this.value" placeholder="Especialidades (opcional)" class="w-full bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] font-medium">
+          <input value="${tipoServico}" oninput="tipoServico=this.value" placeholder="Tipo serviço (opcional)" class="w-full bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] font-medium">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <input value="${prazo}" oninput="prazo=this.value" placeholder="Prazo (opcional)" class="w-full bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] font-medium">
+          <input value="${formaPag}" oninput="formaPag=this.value" placeholder="Forma pagto (opcional)" class="w-full bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] font-medium">
+        </div>
+        <input value="${codigoGov}" oninput="codigoGov=this.value" placeholder="Código gov (opcional)" class="w-full bg-white text-black border border-zinc-300 rounded-xl px-4 py-3 text-[14px] font-medium">
+        <button onclick="handleSaveClick()" ${saving?'disabled':''} class="w-full bg-zinc-900 text-white rounded-full py-3.5 font-semibold text-[15px] mt-2">${saving?'Salvando...':'Salvar orçamento'}</button>
+        <div class="text-[11px] text-zinc-500 text-center">Nenhum campo obrigatório • Letra preta visível • Botão + puxa contato Google/Celular</div>
+      </div>
+      <div class="bg-white rounded-[22px] p-5 border border-zinc-200">
+        <div class="flex justify-between items-center mb-4"><h3 class="font-semibold text-[16px] text-black">Itens do serviço</h3><button onclick="itens.push({id:Date.now(),servico:'',un:'pt',qtd:1,maoObra:0,material:0,tipoMat:''}); render()" class="bg-zinc-900 text-white rounded-full px-4 py-2 text-[13px]">+ Adicionar item</button></div>
+        ${itensHtml}
+        <div class="text-right font-bold text-[18px] mt-3 text-black">Total: R$ ${total().toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+      </div>
+      <div class="bg-white rounded-[22px] p-5 border border-zinc-200">
+        <div class="text-[12px] font-bold text-zinc-700 mb-2">OBSERVAÇÕES (opcional)</div>
+        <textarea oninput="observacoes=this.value" rows="4" placeholder="Na primeira etapa será rompida a parede..." class="w-full bg-white border border-zinc-300 rounded-xl px-3 py-3 text-[14px] text-black font-medium">${observacoes}</textarea>
+      </div>
+    </div>
+  </div>
+  ${showGoogleModal?`
+  <div class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]" onclick="showGoogleModal=false; render()">
+    <div class="bg-white rounded-[20px] p-5 max-w-[400px] w-full max-h-[80vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+      <div class="flex justify-between items-center mb-4">
+        <div class="font-bold text-[16px] text-black">Contatos do Google (${googleContacts.length})</div>
+        <button onclick="showGoogleModal=false; render()" class="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center">✕</button>
+      </div>
+      <div class="overflow-auto flex-1 space-y-2">
+        ${googleContacts.map((c,i)=>`
+          <button onclick="selectGoogleContact(${i})" class="w-full text-left border border-zinc-200 rounded-xl p-3 hover:bg-zinc-50">
+            <div class="font-bold text-[14px] text-black">${c.name}</div>
+            <div class="text-[12px] text-zinc-500">${c.phone} ${c.email ? '• '+c.email : ''}</div>
+          </button>
+        `).join("")}
+      </div>
+    </div>
+  </div>`:''}
+  ${showPopup?`
+  <div class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onclick="showPopup=false; render()">
+    <div class="bg-white rounded-[20px] p-6 max-w-[360px] w-full" onclick="event.stopPropagation()">
+      <div class="text-[18px] font-bold mb-2 text-black">⚠️ Campos vazios</div>
+      <div class="text-[14px] text-zinc-600 mb-5">Isso é só um alerta. Pode fechar e salvar mesmo assim. Será salvo como 'Cliente não informado' se necessário.</div>
+      <div class="flex gap-3">
+        <button onclick="showPopup=false; render()" class="flex-1 border border-zinc-200 rounded-full py-3 text-[14px] text-black">Fechar alerta</button>
+        <button onclick="doSave()" class="flex-1 bg-zinc-900 text-white rounded-full py-3 text-[14px] font-semibold">Salvar mesmo assim</button>
+      </div>
+    </div>
+  </div>`:''}
+  ${toast?`<div class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-[13px] px-5 py-3 rounded-full shadow-xl z-50">${toast}</div>`:''}
+  `;
+}
+
+function login(){
+  let email=document.getElementById("email")?.value||"manchtec@gmail.com";
+  let pass=document.getElementById("pass")?.value||"123";
+  let err=document.getElementById("err");
+  if(checkLogin(email,pass)){
+    logged=true; userEmail=email;
+    localStorage.setItem("mp_session", JSON.stringify({email,loggedAt:new Date().toISOString()}));
+    render();
+  } else {
+    if(err){ err.classList.remove("hidden"); err.innerText="Credenciais inválidas. Use manchtec@gmail.com + qualquer senha, ou manoel123"; }
+  }
+}
+function renderTotal(){ document.querySelectorAll('.text-right.font-bold')[0] && (document.querySelectorAll('.text-right.font-bold')[0].innerText="Total: R$ "+total().toLocaleString('pt-BR',{minimumFractionDigits:2})); }
+
+window.login=login;
+window.handleSaveClick=handleSaveClick;
+window.doSave=doSave;
+window.importGoogle=importGoogle;
+window.selectGoogleContact=selectGoogleContact;
+window.render=render;
+window.renderTotal=renderTotal;
+
+// auto-login se já tem sessão
+try{
+  let s=localStorage.getItem("mp_session");
+  if(s){ let d=JSON.parse(s); if(d&&d.email){ logged=true; userEmail=d.email; } }
+}catch{}
+render();
 </script>
 </body>
 </html>
