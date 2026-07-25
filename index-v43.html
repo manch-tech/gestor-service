@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestor de Serviço - Manoel Pedra - V4.3</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>body{font-family:Inter,system-ui,sans-serif;background:#f6f5f3}</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="module">
+import React, {useState} from "https://esm.sh/react@18.2.0";
+import {createRoot} from "https://esm.sh/react-dom@18.2.0/client";
+import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/+esm";
+const supabase = createClient("https://oquqswjstquwqfobdcdi.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xdXFzd2pzdHF1d3Fmb2JkY2RpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc4NTQzNjksImV4cCI6MjA2MzQzMDM2OX0.6mF7X9P8vQ8Z8xQ9y0z1a2b3c4d5e6f7g8h9i0");
+function App(){
+  const [clienteNome,setClienteNome]=useState("");
+  const [clienteTel,setClienteTel]=useState("");
+  const [clienteEnd,setClienteEnd]=useState("");
+  const [clienteCnpj,setClienteCnpj]=useState("");
+  const [especialidades,setEspecialidades]=useState("");
+  const [tipoServico,setTipoServico]=useState("");
+  const [prazo,setPrazo]=useState("");
+  const [formaPag,setFormaPag]=useState("");
+  const [codigoGov,setCodigoGov]=useState("");
+  const [linkNfse,setLinkNfse]=useState("");
+  const [linkApp,setLinkApp]=useState("");
+  const [observacoes,setObservacoes]=useState("");
+  const [itens,setItens]=useState([{id:Date.now(), servico:"Conserto de cano pvc vazando dentro da parede", un:"pt", qtd:1, maoObra:600, material:150, tipoMat:"Cimento, areia, 50cm tubo 20mm, cola, lixa, argamassa ac2, rejunte"}]);
+  const [toast,setToast]=useState("");
+  const [showPopup,setShowPopup]=useState(false);
+  const [saving,setSaving]=useState(false);
+  const addItem=()=>setItens([...itens,{id:Date.now(),servico:"",un:"pt",qtd:1,maoObra:0,material:0,tipoMat:""}]);
+  const updItem=(id,field,val)=>setItens(itens.map(i=>i.id===id?{...i,[field]:val}:i));
+  const delItem=(id)=>setItens(itens.filter(i=>i.id!==id));
+  const total=itens.reduce((s,i)=>s+((parseFloat(i.maoObra)||0)+(parseFloat(i.material)||0))*(parseFloat(i.qtd)||0),0);
+  const showToast=(msg)=>{setToast(msg); setTimeout(()=>setToast(""),4000);};
+  const doSave=async()=>{
+    setSaving(true);
+    let payload={
+      cliente_nome: clienteNome || "Cliente não informado",
+      cliente_telefone: clienteTel || "",
+      cliente_endereco: clienteEnd || "",
+      cliente_cnpj: clienteCnpj || "",
+      especialidades: especialidades || "",
+      tipo_servico: tipoServico || "",
+      prazo: prazo || "",
+      forma_pagamento: formaPag || "",
+      codigo_gov: codigoGov || "",
+      link_nfse: linkNfse || "",
+      link_app: linkApp || "",
+      observacoes: observacoes || "",
+      itens: itens,
+      total: total,
+      status: "rascunho",
+      header_config: {},
+      anexos: []
+    };
+    let tries=0;
+    while(tries<12){
+      const {error}=await supabase.from("orcamentos").insert([payload]);
+      if(!error){ showToast("✅ Salvo! R$ "+total.toLocaleString("pt-BR",{minimumFractionDigits:2})); setSaving(false); setShowPopup(false); return; }
+      const msg=error.message||"";
+      const m=msg.match(/Could not find the '([^']+)' column/);
+      if(m){ delete payload[m[1]]; tries++; continue; }
+      if(tries>5){
+        const min={cliente_nome:payload.cliente_nome, total:total, itens:itens};
+        const {error:e2}=await supabase.from("orcamentos").insert([min]);
+        if(!e2){ showToast("✅ Salvo (compatibilidade)"); setSaving(false); setShowPopup(false); return; }
+      }
+      showToast("Erro: "+msg); setSaving(false); return;
+    }
+    setSaving(false);
+  };
+  const handleSaveClick=()=>{
+    const vazio=!clienteNome || itens.length===0 || !itens[0].servico;
+    if(vazio){ setShowPopup(true); } else { doSave(); }
+  };
+  return React.createElement("div",{className:"min-h-screen"},
+    React.createElement("div",{className:"bg-zinc-900 text-white px-4 py-4 flex justify-between items-center"},
+      React.createElement("div",{className:"flex items-center gap-3"},
+        React.createElement("div",{className:"w-10 h-10 bg-white text-black rounded-full flex items-center justify-center font-bold"},"MP"),
+        React.createElement("div",null,
+          React.createElement("div",{className:"font-semibold text-[15px]"},"Gestor de Serviço - Manoel Pedra"),
+          React.createElement("div",{className:"text-[12px] text-zinc-400"},"V4.3 - Nada obrigatório • Alerta não bloqueia")
+        )
+      ),
+      React.createElement("div",{className:"text-[11px] text-zinc-500"},"Construção, Reforma")
+    ),
+    React.createElement("div",{className:"max-w-[720px] mx-auto p-4 space-y-4"},
+      React.createElement("div",{className:"bg-zinc-900 rounded-[22px] p-5 space-y-3"},
+        React.createElement("input",{value:clienteNome,onChange:e=>setClienteNome(e.target.value),placeholder:"Nome do cliente (opcional)",className:"w-full bg-zinc-800 text-white rounded-xl px-4 py-3 text-[14px] placeholder-zinc-500 outline-none"}),
+        React.createElement("div",{className:"grid grid-cols-2 gap-3"},
+          React.createElement("input",{value:clienteTel,onChange:e=>setClienteTel(e.target.value),placeholder:"Telefone (opcional)",className:"w-full bg-zinc-800 text-white rounded-xl px-4 py-3 text-[14px] placeholder-zinc-500 outline-none"}),
+          React.createElement("input",{value:clienteCnpj,onChange:e=>setClienteCnpj(e.target.value),placeholder:"CNPJ/CPF (opcional)",className:"w-full bg-zinc-800 text-white rounded-xl px-4 py-3 text-[14px] placeholder-zinc-500 outline-none"})
+        ),
+        React.createElement("input",{value:clienteEnd,onChange:e=>setClienteEnd(e.target.value),placeholder:"Endereço da obra (opcional)",className:"w-full bg-zinc-800 text-white rounded-xl px-4 py-3 text-[14px] placeholder-zinc-500 outline-none"}),
+        React.createElement("div",{className:"grid grid-cols-2 gap-3"},
+          React.createElement("input",{value:especialidades,onChange:e=>setEspecialidades(e.target.value),placeholder:"Especialidades (opcional)",className:"w-full bg-zinc-800 text-white rounded-xl px-4 py-3 text-[14px] placeholder-zinc-500 outline-none"}),
+          React.createElement("input",{value:tipoServico,onChange:e=>setTipoServico(e.target.value),placeholder:"Tipo serviço (opcional)",className:"w-full bg-zinc-800 text-white rounded-xl px-4 py-3 text-[14px] placeholder-zinc-500 outline-none"})
+        ),
+        React.createElement("div",{className:"grid grid-cols-2 gap-3"},
+          React.createElement("input",{value:prazo,onChange:e=>setPrazo(e.target.value),placeholder:"Prazo (opcional)",className:"w-full bg-zinc-800 text-white rounded-xl px-4 py-3 text-[14px] placeholder-zinc-500 outline-none"}),
+          React.createElement("input",{value:formaPag,onChange:e=>setFormaPag(e.target.value),placeholder:"Forma pagto (opcional)",className:"w-full bg-zinc-800 text-white rounded-xl px-4 py-3 text-[14px] placeholder-zinc-500 outline-none"})
+        ),
+        React.createElement("input",{value:codigoGov,onChange:e=>setCodigoGov(e.target.value),placeholder:"Código gov (opcional)",className:"w-full bg-zinc-800 text-white rounded-xl px-4 py-3 text-[14px] placeholder-zinc-500 outline-none"}),
+        React.createElement("button",{onClick:handleSaveClick, disabled:saving, className:"w-full bg-white text-black rounded-full py-3.5 font-semibold text-[15px] mt-2"}, saving?"Salvando...":"Salvar orçamento"),
+        React.createElement("div",{className:"text-[11px] text-zinc-500 text-center mt-2"},"Nenhum campo obrigatório • Se fechar o alerta, salva mesmo assim")
+      ),
+      React.createElement("div",{className:"bg-white rounded-[22px] p-5"},
+        React.createElement("div",{className:"flex justify-between items-center mb-4"},
+          React.createElement("h3",{className:"font-semibold text-[16px]"},"Itens do serviço"),
+          React.createElement("button",{onClick:addItem,className:"bg-zinc-900 text-white rounded-full px-4 py-2 text-[13px]"},"+ Adicionar item")
+        ),
+        itens.map(item=>React.createElement("div",{key:item.id,className:"bg-zinc-50 border border-zinc-200 rounded-[16px] p-4 mb-3"},
+          React.createElement("div",{className:"text-[11px] text-zinc-500 mb-1"},"SERVIÇO / MATERIAL"),
+          React.createElement("input",{value:item.servico,onChange:e=>updItem(item.id,"servico",e.target.value),placeholder:"Conserto de cano pvc vazando...",className:"w-full bg-white border border-zinc-200 rounded-xl px-3 py-2.5 text-[14px] outline-none mb-3"}),
+          React.createElement("div",{className:"grid grid-cols-4 gap-2 mb-3"},
+            React.createElement("div",null,React.createElement("div",{className:"text-[11px] text-zinc-500 mb-1"},"UN"),React.createElement("select",{value:item.un,onChange:e=>updItem(item.id,"un",e.target.value),className:"w-full bg-white border border-zinc-200 rounded-xl px-2 py-2.5 text-[14px]"}, ["pt","m","m2","m3","un","h","dia","vb"].map(u=>React.createElement("option",{key:u,value:u},u)))),
+            React.createElement("div",null,React.createElement("div",{className:"text-[11px] text-zinc-500 mb-1"},"QTD"),React.createElement("input",{value:item.qtd,onChange:e=>updItem(item.id,"qtd",e.target.value),className:"w-full bg-white border border-zinc-200 rounded-xl px-2 py-2.5 text-[14px]"})),
+            React.createElement("div",null,React.createElement("div",{className:"text-[11px] text-zinc-500 mb-1"},"MÃO OBRA"),React.createElement("input",{value:item.maoObra,onChange:e=>updItem(item.id,"maoObra",e.target.value),placeholder:"600",className:"w-full bg-white border border-zinc-200 rounded-xl px-2 py-2.5 text-[14px]"})),
+            React.createElement("div",null,React.createElement("div",{className:"text-[11px] text-zinc-500 mb-1"},"MATERIAL"),React.createElement("input",{value:item.material,onChange:e=>updItem(item.id,"material",e.target.value),placeholder:"150",className:"w-full bg-white border border-zinc-200 rounded-xl px-2 py-2.5 text-[14px]"}))
+          ),
+          React.createElement("div",{className:"flex gap-2 items-end"},
+            React.createElement("div",{className:"flex-1"},React.createElement("div",{className:"text-[11px] text-zinc-500 mb-1"},"TIPO MAT."),React.createElement("input",{value:item.tipoMat,onChange:e=>updItem(item.id,"tipoMat",e.target.value),placeholder:"Cimento, areia, 50cm tubo 20mm...",className:"w-full bg-white border border-zinc-200 rounded-xl px-3 py-2.5 text-[14px]"})),
+            React.createElement("button",{onClick:()=>delItem(item.id),className:"w-10 h-10 bg-white border border-zinc-200 rounded-full flex items-center justify-center"},"✕")
+          ),
+          React.createElement("div",{className:"text-[12px] text-zinc-500 mt-2"},"Subtotal: R$ "+(((parseFloat(item.maoObra)||0)+(parseFloat(item.material)||0))*(parseFloat(item.qtd)||0)).toLocaleString("pt-BR",{minimumFractionDigits:2}))
+        )),
+        React.createElement("div",{className:"text-right font-bold text-[18px] mt-3"},"Total: R$ "+total.toLocaleString("pt-BR",{minimumFractionDigits:2}))
+      ),
+      React.createElement("div",{className:"bg-white rounded-[22px] p-5"},
+        React.createElement("div",{className:"text-[12px] font-semibold text-zinc-500 mb-2"},"OBSERVAÇÕES (opcional)"),
+        React.createElement("textarea",{value:observacoes,onChange:e=>setObservacoes(e.target.value),placeholder:"Na primeira etapa será rompida a parede...",rows:4,className:"w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-3 text-[14px] outline-none"})
+      )
+    ),
+    showPopup && React.createElement("div",{className:"fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50",onClick:()=>setShowPopup(false)},
+      React.createElement("div",{className:"bg-white rounded-[20px] p-6 max-w-[360px] w-full",onClick:e=>e.stopPropagation()},
+        React.createElement("div",{className:"text-[18px] font-bold mb-2"},"⚠️ Campos vazios"),
+        React.createElement("div",{className:"text-[14px] text-zinc-600 mb-5"},"Alguns campos estão vazios. O alerta só avisa, mas você pode fechar e salvar mesmo assim como 'Cliente não informado'."),
+        React.createElement("div",{className:"flex gap-3"},
+          React.createElement("button",{onClick:()=>setShowPopup(false),className:"flex-1 border border-zinc-200 rounded-full py-3 text-[14px]"},"Fechar alerta"),
+          React.createElement("button",{onClick:doSave,className:"flex-1 bg-zinc-900 text-white rounded-full py-3 text-[14px] font-semibold"},"Salvar mesmo assim")
+        )
+      )
+    ),
+    toast && React.createElement("div",{className:"fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-[13px] px-5 py-3 rounded-full shadow-xl z-50"},toast)
+  );
+}
+const root=createRoot(document.getElementById("root"));
+root.render(React.createElement(App));
+</script>
+</body>
+</html>
