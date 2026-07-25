@@ -33,27 +33,71 @@ let header={nome:"Manoel Pedra",tel:"",end:"",cnpj:""};
 try{let h=localStorage.getItem("mp_header");if(h)header=JSON.parse(h);}catch(e){}
 let itens=[{id:1,nome:"Conserto cano pvc",un:"pt",qtd:1,mo:600,mat:150}];
 function calcTotal(){let t=0;for(let i=0;i<itens.length;i++){t+=(parseFloat(itens[i].mo)||0)+(parseFloat(itens[i].mat)||0);}return t;}
-function showToast(m){toast=m;render();setTimeout(function(){toast="";render()},2000);}
+function showToast(m){toast=m;render();setTimeout(function(){toast="";render()},3000);}
 function checkLogin(e,p){e=(e||"").toLowerCase().trim();p=(p||"").trim();if(e==="manchtec@gmail.com"&&p.length>=1)return true;if(p==="manoel123"||p==="admin")return true;return false;}
 async function importGoogle(){
+  // Fallback nativo do celular - nao precisa Google
+  try{
+    if(navigator.contacts && window.ContactsManager){
+      let props=["name","tel"];
+      let c=await navigator.contacts.select(props,{multiple:false});
+      if(c && c[0]){
+        document.getElementById("orc_nome").value=c[0].name[0];
+        document.getElementById("orc_tel").value=c[0].tel[0];
+        showToast("Contato celular OK");
+        render();
+        return;
+      }
+    }
+  }catch(e){}
+
   gLoad=true;render();
   try{
-    if(typeof google==="undefined"||!google.accounts){showToast("Carregando...");gLoad=false;render();setTimeout(importGoogle,1200);return;}
+    if(typeof google==="undefined"||!google.accounts){
+      showToast("Carregando Google...");
+      gLoad=false;render();
+      setTimeout(importGoogle,1500);
+      return;
+    }
     let client=google.accounts.oauth2.initTokenClient({
       client_id:CLIENT_ID,
       scope:"https://www.googleapis.com/auth/contacts.readonly",
+      ux_mode:"popup",
+      prompt:"",
       callback:async function(r){
-        if(r.access_token){
-          let resp=await fetch("https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers&pageSize=100",{headers:{Authorization:"Bearer "+r.access_token}});
-          let data=await resp.json();
-          gContacts=(data.connections||[]).map(function(p){return{name:p.names?p.names[0].displayName:"Sem nome",phone:p.phoneNumbers?p.phoneNumbers[0].value:""};});
-          showGoogle=true;
+        if(r && r.access_token){
+          try{
+            let resp=await fetch("https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers,emailAddresses&pageSize=200",{headers:{Authorization:"Bearer "+r.access_token}});
+            let data=await resp.json();
+            if(data.error){
+              showToast("Ative People API em console.cloud.google.com - "+data.error.message);
+              gLoad=false;render();return;
+            }
+            gContacts=(data.connections||[]).map(function(p){
+              return{
+                name:p.names?p.names[0].displayName:"Sem nome",
+                phone:p.phoneNumbers?p.phoneNumbers[0].value:"",
+                email:p.emailAddresses?p.emailAddresses[0].value:""
+              };
+            });
+            showGoogle=true;
+          }catch(e){showToast("Erro buscar: "+e.message);}
         }
         gLoad=false;render();
+      },
+      error_callback:function(err){
+        gLoad=false;
+        console.log(err);
+        if(err.type==="access_denied"){
+          showToast("Google bloqueou. Va em console.cloud.google.com > Tela consentimento > Usuarios de teste > adicione seu email e Publique o app + adicione https://manch-tech.github.io em Origens JS autorizadas");
+        }else{
+          showToast("Erro Google: "+(err.message||err.type));
+        }
+        render();
       }
     });
-    client.requestAccessToken();
-  }catch(e){gLoad=false;render();}
+    client.requestAccessToken({prompt:""});
+  }catch(e){gLoad=false;showToast("Erro: "+e.message);render();}
 }
 function pickGoogle(i){let c=gContacts[i];let el1=document.getElementById("orc_nome");if(el1)el1.value=c.name;let el2=document.getElementById("orc_tel");if(el2)el2.value=c.phone;showGoogle=false;render();}
 function saveHeader(){
@@ -71,7 +115,7 @@ function render(){
       "<div class='bg-white rounded-[24px] p-6 max-w-[340px] w-full'>"+
       "<div class='w-10 h-10 bg-zinc-900 text-white rounded-full flex items-center justify-center font-bold mb-3'>GS</div>"+
       "<h1 class='font-bold text-[18px] text-black'>Gestor V4.4 FINAL</h1>"+
-      "<p class='text-[11px] text-zinc-500 mb-3'>Abre 100% - Sem linha gigante</p>"+
+      "<p class='text-[11px] text-zinc-500 mb-3'>Abre 100% - Fix Google 403</p>"+
       "<input id='email' value='manchtec@gmail.com' class='w-full border rounded-xl px-3 py-2 text-[13px] mb-2'>"+
       "<input id='pass' type='password' placeholder='senha' class='w-full border rounded-xl px-3 py-2 text-[13px] mb-3'>"+
       "<button onclick='login()' class='w-full bg-zinc-900 text-white rounded-full py-2.5 font-bold text-[13px]'>Entrar</button>"+
@@ -86,11 +130,11 @@ function render(){
     "<button onclick='logged=false;render()' class='text-[9px] border border-zinc-700 rounded-full px-2 py-1'>Sair</button></div>";
 
   let tabs="<div class='bg-white border-b flex gap-1 px-2 overflow-auto'>"+
-    "<button onclick=\"tab='dash';render()\" class='px-2 py-2 text-[9px] font-bold "+(tab==="dash"?"tab-a rounded-t-lg":"tab")+"'>DASH</button>"+
-    "<button onclick=\"tab='orc';render()\" class='px-2 py-2 text-[9px] font-bold "+(tab==="orc"?"tab-a rounded-t-lg":"tab")+"'>ORC</button>"+
-    "<button onclick=\"tab='os';render()\" class='px-2 py-2 text-[9px] font-bold "+(tab==="os"?"tab-a rounded-t-lg":"tab")+"'>OS</button>"+
-    "<button onclick=\"tab='termo';render()\" class='px-2 py-2 text-[9px] font-bold "+(tab==="termo"?"tab-a rounded-t-lg":"tab")+"'>TERMO</button>"+
-    "<button onclick=\"tab='cfg';render()\" class='px-2 py-2 text-[9px] font-bold "+(tab==="cfg"?"tab-a rounded-t-lg":"tab")+"'>CONFIG</button>"+
+    "<button onclick="tab='dash';render()" class='px-2 py-2 text-[9px] font-bold "+(tab==="dash"?"tab-a rounded-t-lg":"tab")+"'>DASH</button>"+
+    "<button onclick="tab='orc';render()" class='px-2 py-2 text-[9px] font-bold "+(tab==="orc"?"tab-a rounded-t-lg":"tab")+"'>ORC</button>"+
+    "<button onclick="tab='os';render()" class='px-2 py-2 text-[9px] font-bold "+(tab==="os"?"tab-a rounded-t-lg":"tab")+"'>OS</button>"+
+    "<button onclick="tab='termo';render()" class='px-2 py-2 text-[9px] font-bold "+(tab==="termo"?"tab-a rounded-t-lg":"tab")+"'>TERMO</button>"+
+    "<button onclick="tab='cfg';render()" class='px-2 py-2 text-[9px] font-bold "+(tab==="cfg"?"tab-a rounded-t-lg":"tab")+"'>CONFIG</button>"+
     "</div>";
 
   let body="";
@@ -108,7 +152,7 @@ function render(){
       "<input id='h_end' value='"+header.end+"' oninput='saveHeader()' class='w-full border rounded-lg px-2 py-2 text-[11px]'>"+
       "</div></div>";
   } else if(tab==="dash"){
-    body="<div class='p-3 max-w-[700px] mx-auto'><div class='bg-white rounded-xl p-4 border'><h3 class='font-bold text-[12px]'>Dashboard</h3><p class='text-[11px] mt-2'>Total R$ "+calcTotal()+"</p><p class='text-[10px] text-zinc-500'>Google ID OK: "+CLIENT_ID.slice(0,20)+"...</p></div></div>";
+    body="<div class='p-3 max-w-[700px] mx-auto'><div class='bg-white rounded-xl p-4 border'><h3 class='font-bold text-[12px]'>Dashboard</h3><p class='text-[11px] mt-2'>Total R$ "+calcTotal()+"</p><p class='text-[10px] text-zinc-500'>Google ID OK - Fix 403 aplicado</p></div></div>";
   } else if(tab==="orc"){
     let itensH="";
     for(let i=0;i<itens.length;i++){
@@ -125,14 +169,15 @@ function render(){
     body="<div class='p-3 max-w-[700px] mx-auto space-y-2'>"+
       "<div class='bg-white rounded-[18px] p-3 border space-y-2'>"+
       "<div class='flex gap-2'>"+
-      "<input id='orc_nome' placeholder='Nome cliente' class='flex-1 border rounded-xl px-3 py-2 text-[11px]'>"+
+      "<input id='orc_nome' placeholder='Nome cliente - clique + p/ Google ou Celular' class='flex-1 border rounded-xl px-3 py-2 text-[11px]'>"+
       "<button onclick='importGoogle()' class='w-9 h-9 bg-zinc-900 text-white rounded-xl font-bold'>"+(gLoad?"...":"+ ")+"</button>"+
       "</div>"+
       "<div class='grid grid-cols-2 gap-2'>"+
       "<input id='orc_tel' placeholder='Tel' class='border rounded-xl px-2 py-2 text-[11px]'>"+
       "<input id='orc_end' placeholder='Endereco' class='border rounded-xl px-2 py-2 text-[11px]'>"+
       "</div>"+
-      "<button onclick=\"showToast('Salvo R$ "+calcTotal()+"')\" class='w-full bg-zinc-900 text-white rounded-full py-2.5 font-bold text-[11px]'>Salvar Orcamento</button>"+
+      "<button onclick="showToast('Salvo R$ '+calcTotal())" class='w-full bg-zinc-900 text-white rounded-full py-2.5 font-bold text-[11px]'>Salvar Orcamento</button>"+
+      "<p class='text-[9px] text-zinc-500 text-center'>Se der 403, use o contato do celular (funciona sem Google)</p>"+
       "</div>"+
       "<div class='bg-white rounded-[18px] p-3 border'>"+itensH+"<div class='text-right font-bold text-[12px]'>Total R$ "+calcTotal()+"</div></div></div>";
   } else if(tab==="os"){
