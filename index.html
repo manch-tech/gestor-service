@@ -139,11 +139,15 @@ async function restoreSession(){
 async function importGoogle(){
   try{
     if(navigator.contacts && window.ContactsManager){
-      let props=["name","tel"];
+      let props=["name","tel","address"];
       let c=await navigator.contacts.select(props,{multiple:false});
       if(c && c[0]){
         selectedNome=c[0].name[0];
         selectedTel=c[0].tel[0];
+        if(c[0].address && c[0].address[0]){
+          let a=c[0].address[0];
+          selectedEnd=[a.addressLine,a.city,a.region,a.postalCode].filter(Boolean).join(", ");
+        }
         showToast("Contato do celular OK");
         render();
         return;
@@ -166,7 +170,7 @@ async function importGoogle(){
       callback:async function(r){
         if(r && r.access_token){
           try{
-            let resp=await fetch("https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers,emailAddresses&pageSize=200",{headers:{Authorization:"Bearer "+r.access_token}});
+            let resp=await fetch("https://people.googleapis.com/v1/people/me/connections?personFields=names,phoneNumbers,emailAddresses,addresses&pageSize=200",{headers:{Authorization:"Bearer "+r.access_token}});
             let data=await resp.json();
             if(data.error){
               showToast("Ative People API - "+data.error.message);
@@ -176,7 +180,8 @@ async function importGoogle(){
               return{
                 name:p.names?p.names[0].displayName:"Sem nome",
                 phone:p.phoneNumbers?p.phoneNumbers[0].value:"",
-                email:p.emailAddresses?p.emailAddresses[0].value:""
+                email:p.emailAddresses?p.emailAddresses[0].value:"",
+                address:p.addresses?(p.addresses[0].formattedValue||""):""
               };
             });
             showGoogle=true;
@@ -201,6 +206,7 @@ function pickGoogle(i){
   let c=gContacts[i];
   selectedNome=c.name;
   selectedTel=c.phone;
+  selectedEnd=c.address||"";
   showGoogle=false;
   showToast("Selecionado: "+c.name);
   render();
@@ -398,7 +404,7 @@ function render(){
     let list="";
     for(let i=0;i<gContacts.length;i++){
       let c=gContacts[i];
-      list+="<button onclick='pickGoogle("+i+")' class='w-full text-left border rounded-lg p-2 mb-1'><div class='font-bold text-[11px]'>"+esc(c.name)+"</div><div class='text-[9px]'>"+esc(c.phone)+"</div></button>";
+      list+="<button onclick='pickGoogle("+i+")' class='w-full text-left border rounded-lg p-2 mb-1'><div class='font-bold text-[11px]'>"+esc(c.name)+"</div><div class='text-[9px]'>"+esc(c.phone)+"</div>"+(c.address?"<div class='text-[9px] text-zinc-500'>"+esc(c.address)+"</div>":"")+"</button>";
     }
     html+="<div class='fixed inset-0 bg-black/50 flex items-center justify-center p-4'><div class='bg-white rounded-[18px] p-3 max-w-[320px] w-full max-h-[70vh] overflow-auto'><div class='font-bold text-[12px] mb-2'>Google ("+gContacts.length+")</div><div>"+list+"</div><button onclick='showGoogle=false;render()' class='w-full bg-zinc-900 text-white rounded-full py-2 mt-2 text-[10px]'>Fechar</button></div></div>";
   }
