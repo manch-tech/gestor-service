@@ -12,3 +12,4 @@ jobs:
       - name: Ping Supabase wybgqdreqylrojdxijey
         run: |
           curl -f "https://wybgqdreqylrojdxijey.supabase.co/auth/v1/health"
+
