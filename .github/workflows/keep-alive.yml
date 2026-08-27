@@ -1,4 +1,3 @@
-
 name: Keep Alive - Outro App
 
 on:
@@ -12,5 +11,4 @@ jobs:
     steps:
       - name: Ping Supabase wybgqdreqylrojdxijey
         run: |
-          curl -f "https://wybgqdreqylrojdxijey.supabase.co/rest/v1/" \
-          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}"
+          curl -f "https://wybgqdreqylrojdxijey.supabase.co/auth/v1/health"
