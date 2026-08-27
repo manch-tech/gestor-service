@@ -184,3 +184,8 @@ const Store = {
 };
 
 setTimeout(()=>{ Store.syncFromSupabase(); }, 800);
+
+// Cod para inslar como app
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/gestor-service/sw.js', {scope: '/gestor-service/'});
+}
