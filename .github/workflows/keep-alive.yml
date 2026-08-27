@@ -13,4 +13,4 @@ jobs:
       - name: Ping Supabase wybgqdreqylrojdxijey
         run: |
           curl -f "https://wybgqdreqylrojdxijey.supabase.co/rest/v1/" \
-          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}"
