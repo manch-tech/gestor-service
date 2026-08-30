@@ -21,6 +21,27 @@
 :where(code, pre, kbd, samp) {
   font-family: "Optimistic Mono", ui-monospace, monospace;
 }
+</style><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
 </style>
 <meta charset="UTF-8">
 <meta name="robots" content="noindex, nofollow, noarchive">
@@ -29,7 +50,9 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="./shared.js"></script>
+<link rel="preconnect" href="https://challenges.cloudflare.com" />
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script src="./geservice-shared.js"></script>
 <style>
 :root{color-scheme: light;}
 body{font-family:Inter,system-ui,sans-serif;background:#f8fafc;color:#0f172a;}
@@ -50,19 +73,14 @@ body{font-family:Inter,system-ui,sans-serif;background:#f8fafc;color:#0f172a;}
 .menu-item:hover{background:#f4f4f5}
 .menu-item.bg-zinc-900{color:white}
 </style>
-<!-- Bloco 1 para app instalavel UNICO -->
-<link rel="manifest" href="/gestor-service/manifest.webmanifest">
-<meta name="theme-color" content="#0d6efd">
-<link rel="icon" href="/gestor-service/icon-192.png">
-<link rel="apple-touch-icon" href="/gestor-service/icon-180.png">
-<!-- Bloco 1 para app instalavel FIM --> 
 </head>
 <body class="min-h-screen">
 
 <!-- TELA LOGIN V8 UNICO -->
 <div id="tela-login" class="fixed inset-0 z-[9999] bg-zinc-950 flex items-center justify-center p-4">
-  <div class="bg-white rounded-[24px] p-8 max-w-[380px] w-full shadow-2xl border">
-    <div class="w-12 h-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-white font-bold text-lg mb-4">MP</div>
+<div class="bg-white rounded-[24px] p-8 max-w-[380px] w-full shadow-2xl border flex flex-col items-center text-center">
+<img src="./logo-gestor-service.png?v=4" alt="Gestor Service" class="w-36 h-36 object-contain mb-6 mx-auto block">
+    
     <h2 class="font-bold text-[18px]">Gestor Service</h2>
     <p class="text-xs text-zinc-500 mt-1">Acesso restrito - Manoel Pedra</p>
     <div class="mt-6">
@@ -75,6 +93,9 @@ body{font-family:Inter,system-ui,sans-serif;background:#f8fafc;color:#0f172a;}
       </div>
       <div id="login-erro" class="hidden mt-3 text-xs text-red-600 bg-red-50 border border-red-200 p-3 rounded-xl"></div>
       <div id="login-info" class="hidden mt-3 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 p-3 rounded-xl"></div>
+      <div class="mt-3 flex justify-center">
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAAEhZP7YNS-Cy05_Q" data-size="flexible"></div>
+      </div>
       <button id="btn-login" onclick="fazerLogin()" class="mt-4 w-full h-11 bg-zinc-900 text-white rounded-xl font-bold text-sm">Entrar</button>
       <button onclick="esqueciSenha()" type="button" class="mt-3 w-full text-center text-[11px] text-zinc-500 underline">Esqueci minha senha</button>
     </div>
@@ -84,7 +105,8 @@ body{font-family:Inter,system-ui,sans-serif;background:#f8fafc;color:#0f172a;}
 <!-- TELA NOVA SENHA (usada quando o usuário clica no link de recuperação) -->
 <div id="tela-nova-senha" class="hidden fixed inset-0 z-[9999] bg-zinc-950 flex items-center justify-center p-4">
   <div class="bg-white rounded-[24px] p-8 max-w-[380px] w-full shadow-2xl border">
-    <div class="w-12 h-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-white font-bold text-lg mb-4">MP</div>
+<img src="./logo-gestor-service.png" alt="GS" class="w
+object-contain rounded-xl shrink-0">
     <h2 class="font-bold text-[18px]">Definir nova senha</h2>
     <p class="text-xs text-zinc-500 mt-1">Escolha uma nova senha para acessar o Gestor Service</p>
     <div class="mt-6">
@@ -98,9 +120,10 @@ body{font-family:Inter,system-ui,sans-serif;background:#f8fafc;color:#0f172a;}
 
 
 <header class="no-print sticky top-0 z-20 bg-white border-b">
-  <div class="max-w-[1200px] mx-auto px-3 min-h-[64px] py-2 flex items-center justify-between gap-2 flex-nowrap">
+  <div class="max-w-[1200px] mx-auto px-3 min-h-[72px] py-2 flex items-center justify-between gap-2 flex-nowrap">
     <div class="flex items-center gap-2 min-w-0">
-      <div class="w-9 h-9 shrink-0 bg-zinc-900 rounded-xl flex items-center justify-center text-white font-bold">MP</div>
+<img src="./gestor-icon.png?v=4" alt="Gestor Service" class="w-14 h-14 object-contain rounded-xl shrink-0">
+
       <div class="min-w-0">
         <b class="text-sm block truncate">Gestor Service</b>
         <div class="text-[11px] text-zinc-500 -mt-1 truncate hidden sm:block">ORC • OS • TER • Manoel Pedra</div>
@@ -265,7 +288,7 @@ body{font-family:Inter,system-ui,sans-serif;background:#f8fafc;color:#0f172a;}
     <div class="card p-6">
       
       <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 text-[13px] leading-relaxed">
-        <b>Declaração:</b> Declaramos para os devidos fins que, <span id="ter_preview_realizado" class="font-bold underline">__________________________</span> realizou os serviços solicitados conforme o combinado e descritos no documento <span id="ter_preview_doc" class="font-bold underline">__________________________</span> entregue para <span id="ter_preview_cliente" class="font-bold underline">__________________________</span>. Os trabalhos foram realizados no endereço <span id="ter_preview_endereco" class="font-bold underline">________________________________________________________</span>.
+        <b>Declaração:</b> Declaramos para os devidos fins que, <span id="ter_preview_realizado" class="font-bold underline">__________________________</span> realizou os serviços solicitados conforme o combinado e descritos no documento <span id="ter_preview_doc" class="font-bold underline">__________________________</span> entregue para <span id="ter_preview_cliente" class="font-bold underline">__________________________</span>. Os trabalhos foram realizados no endereço <span id="ter_preview_endereco" class="font-bold underline">______________________________________________________</span>.
         <div class="text-[11px] text-zinc-500 mt-2">Este texto é preenchido automaticamente com os dados abaixo e aparece no PDF.</div>
       </div>
 
@@ -1513,6 +1536,8 @@ function sessaoDoUsuario(user){
   return { email:user.email, role:papelDoUsuario(user), nome:user.user_metadata?.nome||user.email, ts:Date.now() };
 }
 async function fazerLogin(){
+  const token = document.querySelector('[name="cf-turnstile-response"]')?.value;
+  if(!token){ alert("Confirme que você não é um robô"); return; }
   const email=(document.getElementById('login-email').value||'').trim().toLowerCase();
   const senha=(document.getElementById('login-senha').value||'');
   const erroEl=document.getElementById('login-erro');
@@ -1523,17 +1548,26 @@ async function fazerLogin(){
   if(!sb){ erroEl.textContent='Não foi possível conectar ao Supabase. Verifique sua internet e tente novamente.'; erroEl.classList.remove('hidden'); return; }
   if(!email || !senha){ erroEl.textContent='Preencha email e senha'; erroEl.classList.remove('hidden'); return; }
   btn.disabled=true; btn.textContent='Entrando...';
-  const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
-  btn.disabled=false; btn.textContent='Entrar';
-  if(error || !data?.user){
-    erroEl.textContent = (error && error.message==='Invalid login credentials') ? 'Email ou senha incorretos' : (error?.message || 'Erro ao entrar');
+  try{
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: senha, options: { captchaToken: token } });
+    if(error || !data?.user){
+      erroEl.textContent = (error && error.message==='Invalid login credentials') ? 'Email ou senha incorretos' : (error?.message || 'Erro ao entrar');
+      erroEl.classList.remove('hidden');
+      return;
+    }
+    _sessaoAtual = sessaoDoUsuario(data.user);
+    mostrarApp();
+  }catch(e){
+    erroEl.textContent = 'Erro inesperado: ' + (e.message||e);
     erroEl.classList.remove('hidden');
-    return;
+  }finally{
+    btn.disabled=false; btn.textContent='Entrar';
+    if(window.turnstile) window.turnstile.reset();
   }
-  _sessaoAtual = sessaoDoUsuario(data.user);
-  mostrarApp();
 }
 async function esqueciSenha(){
+  const token = document.querySelector('[name="cf-turnstile-response"]')?.value;
+  if(!token){ alert("Confirme que você não é um robô"); return; }
   const email=(document.getElementById('login-email').value||'').trim().toLowerCase();
   const erroEl=document.getElementById('login-erro');
   const infoEl=document.getElementById('login-info');
@@ -1541,10 +1575,17 @@ async function esqueciSenha(){
   if(!email){ erroEl.textContent='Digite seu email no campo acima primeiro'; erroEl.classList.remove('hidden'); return; }
   const sb=getSupabase();
   if(!sb){ erroEl.textContent='Não foi possível conectar ao Supabase.'; erroEl.classList.remove('hidden'); return; }
-  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname });
-  if(error){ erroEl.textContent=error.message; erroEl.classList.remove('hidden'); return; }
-  infoEl.textContent='Se este email estiver cadastrado, enviamos um link para redefinir a senha.';
-  infoEl.classList.remove('hidden');
+  try{
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: "https://manoelpedra.com.br/gestor-service/", captchaToken: token });
+    if(error){ erroEl.textContent=error.message; erroEl.classList.remove('hidden'); return; }
+    infoEl.textContent='Se este email estiver cadastrado, enviamos um link para redefinir a senha.';
+    infoEl.classList.remove('hidden');
+  }catch(e){
+    erroEl.textContent = 'Erro inesperado: ' + (e.message||e);
+    erroEl.classList.remove('hidden');
+  }finally{
+    if(window.turnstile) window.turnstile.reset();
+  }
 }
 async function fazerLogout(){ const sb=getSupabase(); if(sb) await sb.auth.signOut(); _sessaoAtual=null; location.reload(); }
 async function salvarNovaSenha(){
@@ -1570,6 +1611,15 @@ async function salvarNovaSenha(){
 async function initAuth(){
   const sb=getSupabase();
   if(!sb){ document.getElementById('tela-login').classList.remove('hidden'); return; }
+  // Verifica ANTES de tudo se a URL veio de um link de recuperação de senha
+  // (#access_token=...&type=recovery ou ?type=recovery). Isso evita a corrida
+  // em que getSession() já enxerga a sessão temporária criada pelo token e
+  // manda o usuário direto pro app, sem passar pela tela de nova senha.
+  const urlTemRecovery = window.location.hash.includes('type=recovery') || window.location.search.includes('type=recovery');
+  if(urlTemRecovery){
+    document.getElementById('tela-login').classList.add('hidden');
+    document.getElementById('tela-nova-senha').classList.remove('hidden');
+  }
   // Se o usuário veio do link de "esqueci minha senha", o Supabase dispara PASSWORD_RECOVERY
   // ao processar o token que está na própria URL (#access_token=...&type=recovery).
   sb.auth.onAuthStateChange((event)=>{
@@ -1634,5 +1684,5 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 window.addEventListener('gestor_sync', ()=>{ renderHeader(); preencherDatalists(); renderRecentes(); renderRecentesOS(); renderRecentesTER(); });
 </script>
-</body>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>
