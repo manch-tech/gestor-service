@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gestor Service - ORC | OS | TER - Manoel Pedra</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="preconnect" href="https://challenges.cloudflare.com" />
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script src="./geservice-shared.js"></script>
+<style>
+:root{color-scheme: light;}
+body{font-family:Inter,system-ui,sans-serif;background:#f8fafc;color:#0f172a;}
+@media print{
+  .no-print{display:none!important}
+  body{background:white!important}
+  .print-area{border:none!important;box-shadow:none!important}
+}
+.input{border:1.5px solid #cbd5e1;background:white;border-radius:12px;padding:0 14px;height:42px;width:100%;font-size:14px}
+.textarea{border:1.5px solid #cbd5e1;background:white;border-radius:12px;padding:10px 14px;width:100%;font-size:14px;min-height:90px}
+.label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block;color:#334155}
+.card{background:white;border:1px solid #e2e8f0;border-radius:20px;box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.google-busca-btn{transition:opacity .15s,transform .15s;background:#2563eb!important}
+.google-busca-btn.google-loading{opacity:.85;cursor:wait;transform:scale(.98)}
+.google-spinner{display:inline-block;width:11px;height:11px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:googleSpin .7s linear infinite;vertical-align:-1px}
+@keyframes googleSpin{to{transform:rotate(360deg)}}
+.menu-item{background:white;color:#0f172a}
+.menu-item:hover{background:#f4f4f5}
+.menu-item.bg-zinc-900{color:white}
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- TELA LOGIN V8 UNICO -->
+<div id="tela-login" class="fixed inset-0 z-[9999] bg-zinc-950 flex items-center justify-center p-4">
+<div class="bg-white rounded-[24px] p-8 max-w-[380px] w-full shadow-2xl border flex flex-col items-center text-center">
+<img src="./logo-gestor-service.png?v=4" alt="Gestor Service" class="w-36 h-36 object-contain mb-6 mx-auto block">
+    
+    <h2 class="font-bold text-[18px]">Gestor Service</h2>
+    <p class="text-xs text-zinc-500 mt-1">Acesso restrito - Manoel Pedra</p>
+    <div class="mt-6">
+      <input id="login-email" placeholder="Email" type="email" autocomplete="username" class="w-full h-11 border border-zinc-200 rounded-xl px-4 text-sm">
+      <div class="relative mt-3">
+        <input id="login-senha" placeholder="Senha" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')fazerLogin()" class="w-full h-11 border border-zinc-200 rounded-xl pl-4 pr-11 text-sm">
+        <button type="button" onclick="toggleLoginSenha()" aria-label="Mostrar senha" class="absolute right-0 top-0 h-11 w-11 flex items-center justify-center text-zinc-500 hover:text-zinc-900">
+          <span id="login-senha-olho">👁️</span>
+        </button>
+      </div>
+      <div id="login-erro" class="hidden mt-3 text-xs text-red-600 bg-red-50 border border-red-200 p-3 rounded-xl"></div>
+      <div id="login-info" class="hidden mt-3 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 p-3 rounded-xl"></div>
+      <div class="mt-3 flex justify-center">
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAAEhZP7YNS-Cy05_Q" data-size="flexible"></div>
+      </div>
+      <button id="btn-login" onclick="fazerLogin()" class="mt-4 w-full h-11 bg-zinc-900 text-white rounded-xl font-bold text-sm">Entrar</button>
+      <button onclick="esqueciSenha()" type="button" class="mt-3 w-full text-center text-[11px] text-zinc-500 underline">Esqueci minha senha</button>
+    </div>
+  </div>
+</div>
+
+<!-- TELA NOVA SENHA (usada quando o usuário clica no link de recuperação) -->
+<div id="tela-nova-senha" class="hidden fixed inset-0 z-[9999] bg-zinc-950 flex items-center justify-center p-4">
+  <div class="bg-white rounded-[24px] p-8 max-w-[380px] w-full shadow-2xl border">
+<img src="./logo-gestor-service.png" alt="GS" class="w
+object-contain rounded-xl shrink-0">
+    <h2 class="font-bold text-[18px]">Definir nova senha</h2>
+    <p class="text-xs text-zinc-500 mt-1">Escolha uma nova senha para acessar o Gestor Service</p>
+    <div class="mt-6">
+      <input id="nova-senha-1" placeholder="Nova senha" type="password" autocomplete="new-password" class="w-full h-11 border border-zinc-200 rounded-xl px-4 text-sm">
+      <input id="nova-senha-2" placeholder="Confirme a nova senha" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter')salvarNovaSenha()" class="mt-3 w-full h-11 border border-zinc-200 rounded-xl px-4 text-sm">
+      <div id="nova-senha-erro" class="hidden mt-3 text-xs text-red-600 bg-red-50 border border-red-200 p-3 rounded-xl"></div>
+      <button id="btn-nova-senha" onclick="salvarNovaSenha()" class="mt-4 w-full h-11 bg-zinc-900 text-white rounded-xl font-bold text-sm">Salvar nova senha</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEMPLATE-01 -->
+<template id="app-template">
+
+<header class="no-print sticky top-0 z-20 bg-white border-b">
+  <div class="max-w-[1200px] mx-auto px-3 min-h-[72px] py-2 flex items-center justify-between gap-2 flex-nowrap">
+    <div class="flex items-center gap-2 min-w-0">
+<img src="./gestor-icon.png?v=4" alt="Gestor Service" class="w-14 h-14 object-contain rounded-xl shrink-0">
+
+      <div class="min-w-0">
+        <b class="text-sm block truncate">Gestor Service</b>
+        <div class="text-[11px] text-zinc-500 -mt-1 truncate hidden sm:block">ORC • OS • TER • Manoel Pedra</div>
+      </div>
+    </div>
+    <div id="header-right" class="flex items-center gap-2 shrink-0">
+      <div class="relative shrink-0">
+        <button id="menu-toggle" onclick="toggleMenu(event)" class="h-9 px-3 sm:px-4 rounded-full bg-zinc-900 text-white text-xs font-bold flex items-center gap-1.5">
+          <span id="menu-label" class="truncate max-w-[68px] sm:max-w-none">Orçamento</span>
+          <svg id="menu-caret" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="transition-transform"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div id="menu-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white border border-zinc-200 rounded-2xl shadow-xl overflow-hidden z-30 py-1">
+          <button onclick="mostrarAba('orc')" id="btn-orc" class="menu-item block w-full text-left px-4 py-2.5 text-xs font-bold rounded-lg mx-1 my-0.5" style="width:calc(100% - 8px)">Orçamento</button>
+          <button onclick="mostrarAba('os')" id="btn-os" class="menu-item block w-full text-left px-4 py-2.5 text-xs rounded-lg mx-1 my-0.5" style="width:calc(100% - 8px)">OS</button>
+          <button onclick="mostrarAba('ter')" id="btn-ter" class="menu-item block w-full text-left px-4 py-2.5 text-xs rounded-lg mx-1 my-0.5" style="width:calc(100% - 8px)">Termo Entrega</button>
+          <button onclick="mostrarAba('lista')" id="btn-lista" class="menu-item block w-full text-left px-4 py-2.5 text-xs rounded-lg mx-1 my-0.5" style="width:calc(100% - 8px)">Lista / Busca</button>
+          <button onclick="mostrarAba('config')" id="btn-config" class="menu-item block w-full text-left px-4 py-2.5 text-xs rounded-lg mx-1 my-0.5" style="width:calc(100% - 8px)">Configurações</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-[1200px] mx-auto px-1 py-6">
+  <!-- CABEÇALHO DINÂMICO PREVIEW -->
+  <div id="header-preview" class="card p-5 mb-6 print-area"></div>
+
+  <!-- ABA ORÇAMENTO -->
+  <div id="aba-orc" class="">
+    <div class="card p-6">
+      <div class="flex justify-between items-start gap-4">
+        <div><h2 class="font-bold text-lg">Novo Orçamento - ORC</h2><p class="text-xs text-zinc-500">Dados ficam salvos e reutilizáveis para OS e TER. Use busca para puxar cliente/serviços já cadastrados.</p></div>
+        <div class="flex gap-2"><button onclick="novoORC()" class="h-9 px-4 bg-white border rounded-full text-xs">Novo</button><button onclick="document.getElementById('modal-print-orc').classList.remove('hidden')" class="h-9 px-4 bg-zinc-900 text-white rounded-full text-xs">Imprimir/PDF</button></div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
+        <div><label class="label">ORC-Número</label><input id="orc_numero" class="input font-mono"></div>
+        <div><label class="label">Data</label><input id="orc_data" type="date" class="input"></div>
+        <div><label class="label">Validade</label><input id="orc_validade" type="date" class="input"></div>
+        <div class="md:col-span-2"><label class="label">Título do orçamento</label><input id="orc_titulo" class="input" placeholder="Ex: Reforma cozinha + elétrica" list="lista-servicos"></div>
+        <div><label class="label">Cliente (busca automática) <button type="button" onclick="buscarGoogleContatos()" class="ml-2 text-[10px] px-2 py-0.5 bg-blue-600 text-white rounded-full google-busca-btn">Google</button></label><input id="orc_cliente_nome" class="input" placeholder="Digite para buscar" oninput="autocompleteCliente(this, 'orc')" list="lista-clientes"><datalist id="lista-clientes"></datalist><div id="orc_cliente_sug" class="text-[11px] mt-1"></div></div>
+        <div><label class="label">Telefone</label><input id="orc_cliente_telefone" class="input"></div>
+        <div><label class="label">Email</label><input id="orc_cliente_email" class="input"></div>
+        <div class="md:col-span-3"><label class="label">Endereço do cliente e da obra</label><input id="orc_cliente_endereco" class="input" placeholder="Rua, número, bairro, cidade"></div>
+        <div class="md:col-span-3"><label class="label">Descrição geral (opcional, resumo do orçamento)</label><textarea id="orc_descricao" class="textarea" placeholder="Descreva serviços, especialidades: alvenaria, elétrica, hidráulica..."></textarea><datalist id="lista-servicos"></datalist><datalist id="dl-servicos-precos"></datalist><datalist id="dl-materiais-precos"></datalist></div>
+        <div class="md:col-span-2"><label class="label">Observações</label><textarea id="orc_obs" class="textarea" placeholder="Prazo, forma de pagamento, garantias..."></textarea></div>
+        <input id="orc_valor" type="hidden">
+
+        <div class="md:col-span-3 border-t pt-4"><b class="text-xs">SERVIÇOS / MÃO DE OBRA <span class="font-normal text-zinc-400">(opcional — um item por linha, com preço)</span></b></div>
+        <div class="md:col-span-3">
+          <div id="orc_servicos_itens" class="space-y-2"></div>
+          <button type="button" onclick="addItemOrc('servico')" class="mt-2 h-8 px-3 border rounded-full text-xs">+ Adicionar serviço</button>
+          <div class="text-right text-xs font-bold mt-2 text-zinc-600">Subtotal serviços: <span id="orc_subtotal_servicos">R$ 0,00</span></div>
+        </div>
+
+        <div class="md:col-span-3 border-t pt-4"><b class="text-xs">MATERIAIS <span class="font-normal text-zinc-400">(opcional — um item por linha, com preço)</span></b></div>
+        <div class="md:col-span-3">
+          <div id="orc_materiais_itens" class="space-y-2"></div>
+          <button type="button" onclick="addItemOrc('material')" class="mt-2 h-8 px-3 border rounded-full text-xs">+ Adicionar material</button>
+          <div class="text-right text-xs font-bold mt-2 text-zinc-600">Subtotal materiais: <span id="orc_subtotal_materiais">R$ 0,00</span></div>
+        </div>
+
+        <div class="md:col-span-3 border-t pt-4"><b class="text-xs">VALORES</b></div>
+        <div><label class="label">Valor mão de obra</label><input id="orc_valor_mao_obra" class="input" placeholder="Auto ou manual" oninput="calcTotalOrc()"></div>
+        <div><label class="label">Valor materiais</label><input id="orc_valor_materiais" class="input" placeholder="Auto ou manual" oninput="calcTotalOrc()"></div>
+        <div><label class="label">Valor total</label><input id="orc_valor_total" class="input font-bold" placeholder="Auto"></div>
+        <div class="md:col-span-3"><label class="label">Forma de pagamento</label><select id="orc_forma_pg" class="input"><option>À vista</option><option>Cartão</option><option>A prazo</option><option>PIX</option><option>50% entrada + 50% na entrega</option></select></div>
+
+        <div class="md:col-span-3">
+          <label class="label">Anexos - links, fotos, docs (Google Fotos, Dropbox etc)</label>
+          <div id="orc_anexos" class="space-y-2"></div>
+          <button onclick="addAnexo('orc')" class="mt-2 h-8 px-3 border rounded-full text-xs">+ Adicionar anexo</button>
+        </div>
+      </div>
+      <div class="mt-5 flex gap-2"><button onclick="salvarORC()" class="h-11 px-6 bg-[#ffbf00] rounded-xl font-bold text-sm">Salvar Orçamento</button><span id="orc_status" class="text-xs text-zinc-500 self-center"></span></div>
+    </div>
+    <div id="lista-orc-recente" class="mt-6"></div>
+  </div>
+
+  <!-- MODAL OPÇÕES DE IMPRESSÃO ORC -->
+  <div id="modal-print-orc" class="hidden fixed inset-0 z-[9998] bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-[380px] w-full">
+      <b class="text-sm">Como deseja imprimir o Orçamento?</b>
+      <div class="mt-4 space-y-2">
+        <button onclick="imprimirDoc('orc','completo')" class="w-full h-12 border rounded-xl text-sm text-left px-4 hover:bg-zinc-50">📋 <b>Completo</b><br><span class="text-[11px] text-zinc-500">Todos os itens, valores individuais e subtotais</span></button>
+        <button onclick="imprimirDoc('orc','subtotais')" class="w-full h-12 border rounded-xl text-sm text-left px-4 hover:bg-zinc-50">📊 <b>Resumido</b><br><span class="text-[11px] text-zinc-500">Só subtotal de mão de obra, materiais e total</span></button>
+        <button onclick="imprimirDoc('orc','total')" class="w-full h-12 border rounded-xl text-sm text-left px-4 hover:bg-zinc-50">💰 <b>Somente total</b><br><span class="text-[11px] text-zinc-500">Só o valor total, sem detalhamento</span></button>
+      </div>
+      <button onclick="document.getElementById('modal-print-orc').classList.add('hidden')" class="mt-4 text-xs underline text-zinc-500">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- MODAL SELEÇÃO DE CONTATO GOOGLE -->
+  <div id="modal-google-contatos" class="hidden fixed inset-0 z-[9998] bg-black/50 flex items-center justify-center p-0 sm:p-4">
+    <div class="bg-white rounded-none sm:rounded-2xl p-4 sm:p-5 max-w-[520px] w-full h-full sm:h-auto max-h-screen sm:max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center mb-3"><div><b class="text-sm">Selecionar contato do Google</b><div class="text-[10px] text-zinc-500 mt-0.5">Toque em um contato para abrir todos os dados disponíveis.</div></div><button onclick="document.getElementById('modal-google-contatos').classList.add('hidden')" class="text-xs underline">Fechar</button></div>
+      <input id="google-contatos-filtro" class="input mb-3" placeholder="Filtrar por nome, telefone ou e-mail..." oninput="filtrarContatosGoogle()">
+      <div id="google-contatos-lista" class="overflow-auto space-y-1"></div>
+    </div>
+  </div>
+
+  <!-- MODAL DETALHES DO CONTATO GOOGLE -->
+  <!-- MODAL DETALHE COMPLETO DO CONTATO GOOGLE -->
+  <div id="modal-google-contato-detalhe" class="hidden fixed inset-0 z-[10000] bg-black/50 flex items-center justify-center p-0 sm:p-3">
+    <div class="bg-white rounded-none sm:rounded-2xl p-4 sm:p-5 max-w-[620px] w-full h-full sm:h-auto max-h-screen sm:max-h-[92vh] overflow-auto">
+      <div class="flex justify-between items-center mb-2">
+        <div>
+          <b class="text-base">Dados completos do contato</b>
+          <div id="google-detalhe-subtitulo" class="text-[11px] text-zinc-500 mt-1"></div>
+        </div>
+        <button onclick="fecharDetalheContatoGoogle()" class="text-xs underline">Fechar</button>
+      </div>
+      <div class="flex gap-2 mb-4">
+        <button onclick="copiarTodosDadosGoogle()" class="h-9 px-3 border rounded-xl text-xs">Copiar todos os dados</button>
+      </div>
+      <div id="google-detalhe-conteudo" class="space-y-3"></div>
+      <div class="flex gap-2 mt-5 sticky bottom-0 bg-white pt-3">
+        <button onclick="fecharDetalheContatoGoogle()" class="flex-1 h-11 border rounded-xl text-sm">Voltar</button>
+        <button onclick="usarContatoGoogleAtual()" class="flex-1 h-11 bg-zinc-900 text-white rounded-xl text-sm">Usar este contato</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA OS -->
+  <div id="aba-os" class="hidden">
+    <div class="card p-6">
+      <div class="flex justify-between"><h2 class="font-bold text-lg">Ordem de Serviço - OS</h2><div class="flex gap-2"><button onclick="novoOS()" class="h-9 px-4 bg-white border rounded-full text-xs">Nova OS</button><button onclick="imprimirDoc('os')" class="h-9 px-4 bg-zinc-900 text-white rounded-full text-xs">Imprimir/PDF</button></div></div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
+        <div><label class="label">OS-Número</label><input id="os_numero" class="input font-mono"></div>
+        <div><label class="label">Título</label><input id="os_titulo" class="input"></div>
+        <div><label class="label">ORC-Número / Pedido (puxa dados)</label><input id="os_orc_numero" class="input font-mono" placeholder="ORC-..." list="lista-orc-numeros" oninput="puxarORCparaOS()"><datalist id="lista-orc-numeros"></datalist><datalist id="lista-os-numeros"></datalist></div>
+
+        <div class="md:col-span-3 border-t pt-4"><b class="text-xs">CLIENTE</b></div>
+        <div><label class="label">Nome do cliente <button onclick="buscarGoogleContatos()" type="button" class="ml-2 text-[10px] px-2 py-0.5 bg-blue-600 text-white rounded-full google-busca-btn">Google</button></label><input id="os_cliente_nome" class="input" list="lista-clientes" oninput="autocompleteCliente(this,'os')"></div>
+        <div><label class="label">Telefone</label><input id="os_cliente_telefone" class="input"></div>
+        <div><label class="label">Email</label><input id="os_cliente_email" class="input"></div>
+
+        <div class="md:col-span-3 border-t pt-4"><b class="text-xs">SERVIÇO</b></div>
+        <div class="md:col-span-3"><label class="label">Endereço da obra</label><input id="os_endereco_obra" class="input"></div>
+        <div><label class="label">Trabalho Autorizado por</label><input id="os_autorizado_por" class="input"></div>
+        <div><label class="label">Data início estimada</label><input id="os_data_inicio" type="date" class="input"></div>
+        <div><label class="label">Data término estimada</label><input id="os_data_fim" type="date" class="input"></div>
+        <div class="md:col-span-3"><label class="label">Descrição dos serviços</label><textarea id="os_descricao" class="textarea" list="lista-servicos"></textarea></div>
+        <div class="md:col-span-3"><label class="label">Comentários</label><textarea id="os_comentarios" class="textarea"></textarea></div>
+
+        <div class="md:col-span-3 border-t pt-4"><b class="text-xs">VALORES</b></div>
+        <div><label class="label">Mão de obra</label><input id="os_mao_obra" class="input" oninput="calcTotalOS()"></div>
+        <div><label class="label">Materiais</label><input id="os_materiais" class="input" oninput="calcTotalOS()"></div>
+        <div><label class="label">Total</label><input id="os_total" class="input font-bold"></div>
+        <div class="md:col-span-3"><label class="label">Forma de pagamento</label><select id="os_forma_pg" class="input"><option>À vista</option><option>Cartão</option><option>A prazo</option><option>PIX</option><option>50% entrada + 50% na entrega</option></select></div>
+
+        <div class="md:col-span-3 border-t pt-4"><b class="text-xs">ASSINATURA</b></div>
+        <div><label class="label">Nome e função do cliente/representante</label><input id="os_rep_nome" class="input"></div>
+        <div class="md:col-span-2"><label class="label">Assinatura e CPF</label><input id="os_rep_cpf" class="input" placeholder="Assina: ___ CPF: ___"></div>
+      </div>
+      <div class="mt-5 flex gap-2"><button onclick="salvarOS()" class="h-11 px-6 bg-[#ffbf00] rounded-xl font-bold text-sm">Salvar OS</button><span id="os_status" class="text-xs text-zinc-500 self-center"></span></div>
+    </div>
+    <div id="lista-os-recente" class="mt-6"></div>
+  </div>
+
+  <!-- ABA TERMO -->
+  <div id="aba-ter" class="hidden">
+    <div class="card p-6">
+      
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 text-[13px] leading-relaxed">
+        <b>Declaração:</b> Declaramos para os devidos fins que, <span id="ter_preview_realizado" class="font-bold underline">__________________________</span> realizou os serviços solicitados conforme o combinado e descritos no documento <span id="ter_preview_doc" class="font-bold underline">__________________________</span> entregue para <span id="ter_preview_cliente" class="font-bold underline">__________________________</span>. Os trabalhos foram realizados no endereço <span id="ter_preview_endereco" class="font-bold underline">________________________________________________________</span>.
+        <div class="text-[11px] text-zinc-500 mt-2">Este texto é preenchido automaticamente com os dados abaixo e aparece no PDF.</div>
+      </div>
+
+      <div class="flex justify-between"><h2 class="font-bold text-lg">Termo de Entrega / Recebimento - TER</h2><div class="flex gap-2"><button onclick="novoTER()" class="h-9 px-4 bg-white border rounded-full text-xs">Novo TER</button><button onclick="imprimirDoc('ter')" class="h-9 px-4 bg-zinc-900 text-white rounded-full text-xs">Imprimir/PDF</button></div></div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
+        <div><label class="label">TER-Número</label><input id="ter_numero" class="input font-mono"></div>
+        <div><label class="label">OS-Número</label><input id="ter_os_numero" class="input font-mono" list="lista-os-numeros" oninput="puxarOSparaTER(); atualizarPreviewTER()"></div>
+        <div><label class="label">ORC-Número</label><input id="ter_orc_numero" class="input font-mono" list="lista-orc-numeros" oninput="atualizarPreviewTER()"></div>
+        <div><label class="label">Data entrega</label><input id="ter_data" type="date" class="input"></div>
+        <div><label class="label">Cliente <button type="button" onclick="buscarGoogleContatos()" class="ml-2 text-[10px] px-2 py-0.5 bg-blue-600 text-white rounded-full google-busca-btn">Google</button></label><input id="ter_cliente_nome" class="input" list="lista-clientes" oninput="atualizarPreviewTER()"></div>
+        <div><label class="label">Serviço realizado por</label><input id="ter_realizado_por" class="input" oninput="atualizarPreviewTER()"></div>
+        <div class="md:col-span-3"><label class="label">Descrição do Serviço Concluído e Materiais Utilizados</label><textarea id="ter_descricao" class="textarea"></textarea></div>
+        <div class="md:col-span-2"><label class="label">Código autenticação gov.br</label><input id="ter_codigo_auth" class="input font-mono" placeholder="Código de assinatura eletrônica"></div>
+        <div><label class="label">Link Nota Fiscal</label><input id="ter_link_nota" class="input" placeholder="https://..."></div>
+      </div>
+      <div class="mt-5 flex gap-2"><button onclick="salvarTER()" class="h-11 px-6 bg-[#ffbf00] rounded-xl font-bold text-sm">Salvar Termo</button><span id="ter_status" class="text-xs text-zinc-500 self-center"></span></div>
+    </div>
+    <div id="lista-ter-recente" class="mt-6"></div>
+  </div>
+
+  <!-- ABA LISTA / BUSCA -->
+  <div id="aba-lista" class="hidden">
+    <div class="card p-6">
+      <h2 class="font-bold text-lg">Lista Geral - Busca Inteligente</h2>
+      <p class="text-xs text-zinc-500">Busque por cliente, serviço, material, preço, número. Tudo interligado.</p>
+      <div class="flex gap-2 mt-4"><input id="busca_geral" class="input" placeholder="Buscar: cliente, ORC-..., alvenaria, elétrica, preço..." oninput="renderBusca()"><select id="filtro_tipo" class="input w-[160px]" onchange="renderBusca()"><option value="todos">Todos</option><option value="ORC">Só ORC</option><option value="OS">Só OS</option><option value="TER">Só TER</option></select></div>
+      <div id="resultado_busca" class="mt-4 space-y-2"></div>
+    </div>
+  </div>
+
+  <!-- ABA CONFIG -->
+  <div id="aba-config" class="hidden">
+    <div class="card p-6">
+      <h2 class="font-bold text-lg">Configurações - Cabeçalho Dinâmico</h2>
+      <p class="text-xs text-zinc-500">Só aparece no impresso o que você preencher. Se não preencher CNPJ, a sigla CNPJ nem aparece. Pode fazer cabeçalho simples ou completo.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+        <div class="md:col-span-2"><label class="label">Logo URL</label><input id="cfg_logo" class="input" placeholder="https://...png"></div>
+        <div><label class="label">Nome da empresa (linha 1)</label><input id="cfg_nome" class="input"></div>
+        <div><label class="label">CNPJ (só mostra se preencher)</label><input id="cfg_cnpj" class="input" placeholder="00.000.000/0001-00"></div>
+        <div class="md:col-span-2"><label class="label">Descrição das atividades (linha 2)</label><input id="cfg_atividades" class="input"></div>
+        <div><label class="label">Email (linha 3)</label><input id="cfg_email" class="input"></div>
+        <div><label class="label">Telefone (linha 3)</label><input id="cfg_telefone" class="input"></div>
+        <div class="md:col-span-2"><label class="label">Endereço (linha 4)</label><input id="cfg_endereco" class="input"></div>
+        <div><label class="label">Link Nota Fiscal (auxiliar)</label><input id="cfg_link_nota" class="input"></div>
+        <div><label class="label">Link Drive/Fotos (auxiliar)</label><input id="cfg_link_drive" class="input"></div>
+      </div>
+      <div class="mt-5 flex gap-2"><button onclick="salvarConfig()" class="h-11 px-6 bg-zinc-900 text-white rounded-xl font-bold text-sm">Salvar Cabeçalho</button><button onclick="resetConfig()" class="h-11 px-6 bg-white border rounded-xl text-sm">Resetar</button></div>
+    </div>
+
+    <div class="card p-6 mt-6">
+      <h2 class="font-bold text-lg">Integração Google Contatos</h2>
+      <p class="text-xs text-zinc-500 leading-relaxed mt-1">
+        Para o botão "Google" buscar contatos automaticamente, crie um <b>OAuth Client ID</b> no
+        <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="underline text-blue-600">Google Cloud Console</a>:
+        ative a <b>People API</b>, crie uma credencial "ID do cliente OAuth" tipo <b>Aplicativo da Web</b>,
+        e adicione o domínio deste site em "Origens JavaScript autorizadas". Cole o Client ID abaixo.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div><label class="label">Google Client ID</label><input id="cfg_google_client_id" class="input" placeholder="xxxxxxxx.apps.googleusercontent.com"></div>
+        <div><label class="label">Google API Key (opcional)</label><input id="cfg_google_api_key" class="input" placeholder="Opcional"></div>
+      </div>
+      <div class="mt-4"><button onclick="salvarConfigGoogle()" class="h-11 px-6 bg-zinc-900 text-white rounded-xl font-bold text-sm">Salvar Integração Google</button></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- PRINT TEMPLATE -->
+<div id="print-template" class="hidden"></div>
+</div>
+</template>
+<div id="app-root"></div>
+
+<script>
+let abaAtual='orc';
+const NOMES_ABA = { orc:'Orçamento', os:'OS', ter:'Termo Entrega', lista:'Lista / Busca', config:'Configurações' };
+function mostrarAba(nome){
+  ['orc','os','ter','lista','config'].forEach(a=>{
+    document.getElementById('aba-'+a).classList.add('hidden');
+    const btn=document.getElementById('btn-'+a);
+    if(btn){ btn.classList.remove('bg-zinc-900','text-white'); btn.classList.add('bg-white','border'); }
+  });
+  document.getElementById('aba-'+nome).classList.remove('hidden');
+  const btnAt=document.getElementById('btn-'+nome);
+  if(btnAt){ btnAt.classList.add('bg-zinc-900','text-white'); btnAt.classList.remove('bg-white','border'); }
+  abaAtual=nome;
+  const label=document.getElementById('menu-label');
+  if(label && NOMES_ABA[nome]) label.textContent = NOMES_ABA[nome];
+  closeMenu();
+  if(nome==='lista') renderBusca();
+  if(nome==='orc') { renderRecentes(); preencherDatalists(); }
+  if(nome==='os') { renderRecentesOS(); preencherDatalists(); }
+  if(nome==='ter') { renderRecentesTER(); preencherDatalists(); }
+}
+function toggleMenu(ev){
+  if(ev) ev.stopPropagation();
+  const dd=document.getElementById('menu-dropdown');
+  const caret=document.getElementById('menu-caret');
+  if(!dd) return;
+  const abrir=dd.classList.contains('hidden');
+  dd.classList.toggle('hidden');
+  if(caret) caret.style.transform = abrir ? 'rotate(180deg)' : '';
+}
+function closeMenu(){
+  const dd=document.getElementById('menu-dropdown');
+  const caret=document.getElementById('menu-caret');
+  if(dd) dd.classList.add('hidden');
+  if(caret) caret.style.transform='';
+}
+document.addEventListener('click', (ev)=>{
+  const dd=document.getElementById('menu-dropdown');
+  const toggle=document.getElementById('menu-toggle');
+  if(!dd || dd.classList.contains('hidden')) return;
+  if(!dd.contains(ev.target) && ev.target!==toggle && !toggle?.contains(ev.target)) closeMenu();
+});
+
+function renderHeader(){
+  const cfg=Store.getConfig();
+  const el=document.getElementById('header-preview');
+  // Só mostra linha se tiver dado
+  const linha1 = [cfg.nome_empresa, cfg.cnpj?`CNPJ ${cfg.cnpj}`:'' ].filter(Boolean).join(' • ');
+  const linha2 = cfg.atividades||'';
+  const linha3 = [cfg.email, cfg.telefone].filter(Boolean).join(' | ');
+  const linha4 = cfg.endereco||'';
+  el.innerHTML = `
+    <div class="flex gap-4 items-start">
+      ${cfg.logo_url?`<img src="${cfg.logo_url}" class="w-16 h-16 object-contain rounded-xl border">`:''}
+      <div class="flex-1">
+        <div class="font-bold text-[15px]">${cfg.nome_empresa||'Sua Empresa'}</div>
+        ${linha1?`<div class="text-xs text-zinc-600">${linha1}</div>`:''}
+        ${linha2?`<div class="text-xs mt-1">${linha2}</div>`:''}
+        ${linha3?`<div class="text-xs text-zinc-600 mt-1">${linha3}</div>`:''}
+        ${linha4?`<div class="text-xs text-zinc-600">${linha4}</div>`:''}
+        <div class="text-[10px] text-zinc-400 mt-2">Cabeçalho dinâmico: só aparece o que estiver preenchido em Configurações</div>
+      </div>
+      <div class="text-[10px] text-zinc-400">Gestor Service • Supabase ON</div>
+    </div>
+  `;
+}
+
+
+// =========================================================
+// GOOGLE CONTACTS - OAuth Authorization Code + Edge Function
+// =========================================================
+let googleContatosCache = [];
+let googleCodeClient = null;
+
+const GOOGLE_FUNCTION_URL =
+  'https://wybgqdreqylrojdxijey.supabase.co/functions/v1/google-contacts';
+
+const GOOGLE_CONTACTS_SCOPE =
+  'https://www.googleapis.com/auth/contacts.readonly ' +
+  'https://www.googleapis.com/auth/contacts.other.readonly';
+
+function setGoogleBuscaLoading(loading){
+  document.querySelectorAll('.google-busca-btn').forEach(btn=>{
+    if(loading){
+      if(!btn.dataset.googleOriginalText) btn.dataset.googleOriginalText = btn.textContent.trim() || 'Google';
+      btn.disabled = true;
+      btn.classList.add('google-loading');
+      btn.innerHTML = '<span class="google-spinner" aria-hidden="true"></span> Buscando...';
+      btn.setAttribute('aria-busy','true');
+    }else{
+      btn.disabled = false;
+      btn.classList.remove('google-loading');
+      btn.innerHTML = btn.dataset.googleOriginalText || 'Google';
+      btn.removeAttribute('aria-busy');
+    }
+  });
+}
+
+async function getSupabaseAccessToken(){
+  const sb = getSupabase();
+  if(!sb) throw new Error('Supabase não está disponível.');
+  const { data, error } = await sb.auth.getSession();
+  if(error || !data?.session?.access_token){
+    throw new Error('Sua sessão expirou. Faça login novamente.');
+  }
+  return data.session.access_token;
+}
+
+function initGoogleCodeClient(){
+  const cfg=Store.getConfig();
+  if(!cfg.google_client_id) return null;
+  if(googleCodeClient) return googleCodeClient;
+  if(!window.google || !window.google.accounts || !window.google.accounts.oauth2) return null;
+
+  googleCodeClient = google.accounts.oauth2.initCodeClient({
+    client_id: cfg.google_client_id,
+    scope: GOOGLE_CONTACTS_SCOPE,
+    ux_mode: 'popup',
+    select_account: true,
+    callback: async (response)=>{
+      try{
+        if(!response?.code) throw new Error('O Google não retornou o código de autorização.');
+        // No modo popup, o Google usa a ORIGEM da página (protocolo+dominio, sem path)
+        // como redirect_uri. Precisamos mandar esse mesmo valor pra edge function usar
+        // na troca do code pelos tokens, senão o Google recusa com redirect_uri_mismatch.
+        await conectarGoogleComCodigo(response.code, window.location.origin);
+        await carregarContatosGoogle();
+      }catch(error){
+        console.error('Erro OAuth Google:', error);
+        alert(error?.message || 'Não foi possível conectar ao Google.');
+      }
+    }
+  });
+  return googleCodeClient;
+}
+
+async function chamarGoogleFunction(payload){
+  const supabaseToken = await getSupabaseAccessToken();
+  const response = await fetch(GOOGLE_FUNCTION_URL, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':'Bearer '+supabaseToken
+    },
+    body:JSON.stringify(payload)
+  });
+  const data = await response.json().catch(()=>({}));
+  if(!response.ok || !data?.ok){
+    const err = new Error(data?.error || 'Erro na integração com o Google.');
+    err.status = response.status;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
+async function conectarGoogleComCodigo(code, redirectUri){
+  return await chamarGoogleFunction({ action:'connect', code, redirect_uri: redirectUri });
+}
+
+async function verificarConexaoGoogle(){
+  return await chamarGoogleFunction({ action:'status' });
+}
+
+async function carregarContatosGoogle(){
+  try{
+    const data = await chamarGoogleFunction({ action:'contacts' });
+    googleContatosCache = (data.contatos || [])
+      .map(c=>({
+        ...c,
+        nome:c.nome || '',
+        telefone:c.telefone || '',
+        email:c.email || '',
+        endereco:c.endereco || '',
+        dados:c.dados || {}
+      }))
+      .filter(c=>c.nome || c.telefone || c.email || c.endereco || Object.keys(c.dados || {}).length)
+      .sort((a,b)=>(a.nome || a.telefone || a.email).localeCompare((b.nome || b.telefone || b.email),'pt-BR'));
+
+    console.log('Contatos Google carregados:', googleContatosCache.length);
+    abrirPickerContatos();
+  }catch(e){
+    console.error('Erro contatos Google:',e);
+    alert(e?.message || 'Não foi possível buscar os contatos do Google.');
+  }finally{
+    setGoogleBuscaLoading(false);
+  }
+}
+
+async function buscarGoogleContatos(){
+  setGoogleBuscaLoading(true);
+  try{
+    const cfg=Store.getConfig();
+    if(!cfg.google_client_id){
+      alert('Configure o "Google Client ID" na aba Configurações para habilitar a busca automática de contatos.');
+      mostrarAba('config');
+      return;
+    }
+
+    try{
+      const status=await verificarConexaoGoogle();
+      if(status?.connected){
+        await carregarContatosGoogle();
+        return;
+      }
+    }catch(e){
+      console.warn('Não foi possível verificar a conexão Google:',e);
+    }
+
+    const client=initGoogleCodeClient();
+    if(!client){
+      alert('Biblioteca do Google ainda carregando, tente novamente em instantes.');
+      return;
+    }
+    client.requestCode();
+  }catch(e){
+    console.error('Erro iniciando Google:',e);
+    setGoogleBuscaLoading(false);
+    alert(e?.message || 'Não foi possível iniciar a integração Google.');
+  }
+}
+
+function abrirPickerContatos(){
+  const filtro=document.getElementById('google-contatos-filtro');
+  if(filtro) filtro.value='';
+  renderContatosGoogleLista(googleContatosCache);
+  const modal=document.getElementById('modal-google-contatos');
+  if(modal) modal.classList.remove('hidden');
+}
+
+function renderContatosGoogleLista(lista){
+  const el=document.getElementById('google-contatos-lista');
+  if(!el) return;
+  const limite=lista.slice(0,500);
+  el.innerHTML=limite.map(c=>{
+    const idx=googleContatosCache.indexOf(c);
+    const titulo=c.nome || c.telefone || c.email || 'Contato sem nome';
+    const phones=(c.dados?.phoneNumbers||[]).map(x=>x?.value).filter(Boolean).join(' • ');
+    const emails=(c.dados?.emailAddresses||[]).map(x=>x?.value).filter(Boolean).join(' • ');
+    const resumo=[phones||c.telefone, emails||c.email].filter(Boolean).join(' • ');
+    return `<button onclick="selecionarContatoGoogle(${idx})" class="w-full text-left px-3 py-2 rounded-lg hover:bg-zinc-100 text-xs border-b"><b>${esc(titulo)}</b>${resumo?`<br><span class="text-zinc-500 break-words">${esc(resumo)}</span>`:''}</button>`;
+  }).join('') || '<div class="text-xs text-zinc-500 p-2">Nenhum contato encontrado</div>';
+
+  if(lista.length>500){
+    el.insertAdjacentHTML('beforeend','<div class="text-[11px] text-zinc-500 p-2">Mostrando os primeiros 500 resultados. Use a busca para localizar outros contatos.</div>');
+  }
+}
+
+function normalizarBuscaGoogle(valor){
+  return String(valor || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function filtrarContatosGoogle(){
+  const q=normalizarBuscaGoogle(
+    document.getElementById('google-contatos-filtro')?.value || ''
+  );
+
+  if(!q){
+    renderContatosGoogleLista(googleContatosCache);
+    return;
+  }
+
+  const filtrados=googleContatosCache.filter(c=>{
+    const texto=[
+      c.nome,
+      c.telefone,
+      c.email,
+      c.endereco,
+      Object.entries(c.dados || {}).map(([k,v])=>valorLegivelGoogle(v,k)).join(' ')
+    ].map(normalizarBuscaGoogle).join(' ');
+
+    return texto.includes(q);
+  });
+
+  renderContatosGoogleLista(filtrados);
+}
+
+let googleContatoAtual = null;
+
+function rotuloCampoGoogle(chave){
+  const mapa={
+    names:'Nomes', phoneNumbers:'Telefones', emailAddresses:'E-mails', addresses:'Endereços',
+    organizations:'Organizações / empresas', birthdays:'Aniversários', urls:'Sites e links',
+    calendarUrls:'Calendário', biographies:'Biografia / notas', nicknames:'Apelidos', occupations:'Profissões',
+    relations:'Relações', events:'Datas / eventos', interests:'Interesses', skills:'Habilidades',
+    imClients:'Mensageiros', locales:'Idiomas / localidades', memberships:'Grupos',
+    userDefined:'Campos personalizados', sipAddresses:'Endereços SIP', residences:'Residências',
+    genders:'Gênero', ageRanges:'Faixa etária', photos:'Fotos', coverPhotos:'Fotos de capa',
+    locations:'Localizações', miscKeywords:'Palavras-chave', externalIds:'Identificadores externos',
+    clientData:'Dados personalizados', resourceName:'Identificador do contato', etag:'ETag', metadata:'Dados técnicos'
+  };
+  return mapa[chave] || chave;
+}
+
+function valorSimplesGoogle(valor){
+  if(valor===null || valor===undefined || valor==='') return '';
+  if(typeof valor==='string' || typeof valor==='number' || typeof valor==='boolean') return String(valor);
+  return '';
+}
+
+function dataGoogle(valor){
+  if(!valor || typeof valor!=='object') return '';
+  const ano=valor.year ? String(valor.year).padStart(4,'0') : '';
+  const mes=valor.month ? String(valor.month).padStart(2,'0') : '';
+  const dia=valor.day ? String(valor.day).padStart(2,'0') : '';
+  if(ano && mes && dia) return `${dia}/${mes}/${ano}`;
+  if(mes && dia) return `${dia}/${mes}`;
+  if(ano) return ano;
+  return '';
+}
+
+function campoInternoGoogle(chave){
+  return ['metadata','resourceName','etag'].includes(chave);
+}
+
+function itemLegivelGoogle(chave,item){
+  if(item===null || item===undefined || item==='') return '';
+  if(typeof item==='string' || typeof item==='number' || typeof item==='boolean') return String(item);
+
+  if(chave==='names'){
+    const partes=[];
+    if(item.displayName) partes.push(item.displayName);
+    const detalhes=[];
+    if(item.givenName && item.givenName!==item.displayName) detalhes.push(`Nome: ${item.givenName}`);
+    if(item.middleName) detalhes.push(`Nome do meio: ${item.middleName}`);
+    if(item.familyName) detalhes.push(`Sobrenome: ${item.familyName}`);
+    if(item.displayNameLastFirst) detalhes.push(`Sobrenome primeiro: ${item.displayNameLastFirst}`);
+    if(item.phoneticFullName) detalhes.push(`Nome fonético: ${item.phoneticFullName}`);
+    return [...partes,...detalhes].join(' • ');
+  }
+
+  if(chave==='phoneNumbers'){
+    return [item.value, item.formattedType || item.type, item.label ? `Etiqueta: ${item.label}` : ''].filter(Boolean).join(' • ');
+  }
+
+  if(chave==='emailAddresses'){
+    return [item.value, item.formattedType || item.type, item.label ? `Etiqueta: ${item.label}` : ''].filter(Boolean).join(' • ');
+  }
+
+  if(chave==='addresses'){
+    const principal=item.formattedValue || [
+      item.streetAddress, item.extendedAddress, item.city, item.region,
+      item.postalCode, item.country
+    ].filter(Boolean).join(', ');
+    const extras=[];
+    if(item.type || item.formattedType) extras.push(item.formattedType || item.type);
+    if(item.poBox) extras.push(`Caixa postal: ${item.poBox}`);
+    return [principal,...extras].filter(Boolean).join(' • ');
+  }
+
+  if(chave==='organizations'){
+    return [item.name, item.title, item.department, item.jobDescription].filter(Boolean).join(' • ');
+  }
+
+  if(['birthdays','events'].includes(chave)){
+    return [dataGoogle(item.date), item.formattedType || item.type, item.label ? `Etiqueta: ${item.label}` : ''].filter(Boolean).join(' • ');
+  }
+
+  if(['urls','calendarUrls'].includes(chave)){
+    return [item.url, item.formattedType || item.type, item.label ? `Etiqueta: ${item.label}` : ''].filter(Boolean).join(' • ');
+  }
+
+  if(['biographies','nicknames','occupations','interests','skills','locales','genders','ageRanges','miscKeywords'].includes(chave)){
+    return [item.value, item.formattedType || item.type, item.label ? `Etiqueta: ${item.label}` : ''].filter(Boolean).join(' • ');
+  }
+
+  if(chave==='relations'){
+    return [item.person, item.formattedType || item.type, item.label ? `Etiqueta: ${item.label}` : ''].filter(Boolean).join(' • ');
+  }
+
+  if(chave==='imClients'){
+    return [item.username, item.formattedProtocol || item.protocol, item.formattedType || item.type].filter(Boolean).join(' • ');
+  }
+
+  if(chave==='memberships'){
+    return [item.contactGroupMembership?.contactGroupResourceName, item.contactGroupMembership?.contactGroupId].filter(Boolean).join(' • ');
+  }
+
+  if(chave==='userDefined'){
+    return [item.key, item.value].filter(Boolean).join(': ');
+  }
+
+  if(chave==='sipAddresses'){
+    return [item.value, item.formattedType || item.type, item.label ? `Etiqueta: ${item.label}` : ''].filter(Boolean).join(' • ');
+  }
+
+  if(chave==='locations'){
+    return [item.value, item.type, item.label].filter(Boolean).join(' • ');
+  }
+
+  if(chave==='photos' || chave==='coverPhotos'){
+    return item.url || '';
+  }
+
+  if(typeof item==='object'){
+    const partes=[];
+    for(const [k,v] of Object.entries(item)){
+      if(k==='metadata' || k==='source' || k==='resourceName' || k==='etag') continue;
+      const simples=valorSimplesGoogle(v);
+      if(simples) partes.push(`${rotuloCampoGoogle(k)}: ${simples}`);
+    }
+    return partes.join(' • ');
+  }
+  return String(item);
+}
+
+function valorLegivelGoogle(valor, chave=''){
+  if(valor===null || valor===undefined || valor==='') return '';
+  if(Array.isArray(valor)) return valor.map(item=>itemLegivelGoogle(chave,item)).filter(Boolean).join(' • ');
+  return itemLegivelGoogle(chave,valor);
+}
+
+function renderCampoCompletoGoogle(chave, valor){
+  if(campoInternoGoogle(chave)) return '';
+  if(valor===null || valor===undefined || valor==='' || (Array.isArray(valor)&&!valor.length)) return '';
+  const itens=Array.isArray(valor) ? valor : [valor];
+  return `<section class="border border-zinc-200 rounded-xl p-3 bg-zinc-50">
+    <div class="text-[11px] font-bold uppercase tracking-wide text-zinc-600 mb-2">${esc(rotuloCampoGoogle(chave))}</div>
+    <div class="space-y-2">${itens.map((item,n)=>{
+      const texto=itemLegivelGoogle(chave,item);
+      if(!texto) return '';
+      const fotoUrl=(chave==='photos' || chave==='coverPhotos') && item && typeof item==='object' ? item.url : '';
+      const link=item && typeof item==='object' && (chave==='urls' || chave==='calendarUrls') ? item.url : '';
+      const linkHtml=link ? `<a href="${esc(link)}" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-600 underline break-all block mt-1">Abrir link</a>` : '';
+      return `<div class="bg-white border border-zinc-200 rounded-lg p-2">
+        ${fotoUrl?`<img src="${esc(fotoUrl)}" alt="Foto do contato" class="w-20 h-20 rounded-xl object-cover border mb-2" loading="lazy">`:''}
+        <div class="text-xs leading-5 break-words">${esc(texto)}</div>
+        ${linkHtml}
+        <button type="button" onclick='copiarTextoGoogle(${JSON.stringify(texto).replace(/'/g,"&#39;")})' class="mt-2 text-[10px] underline">Copiar${itens.length>1?` ${n+1}`:''}</button>
+      </div>`;
+    }).join('')}</div>
+  </section>`;
+}
+
+function abrirDetalheContatoGoogle(c){
+  googleContatoAtual=c;
+  const dados=c?.dados || {};
+  const conteudo=document.getElementById('google-detalhe-conteudo');
+  const subtitulo=document.getElementById('google-detalhe-subtitulo');
+  if(subtitulo) subtitulo.textContent=c?.nome || c?.telefone || c?.email || 'Contato Google';
+
+  const ordem=['names','phoneNumbers','emailAddresses','addresses','organizations','birthdays','urls','calendarUrls','biographies','nicknames','occupations','relations','events','interests','skills','imClients','locales','memberships','userDefined','sipAddresses','residences','locations','genders','ageRanges','photos','coverPhotos','miscKeywords','externalIds','clientData'];
+  const chaves=[...ordem,...Object.keys(dados).filter(k=>!ordem.includes(k) && !campoInternoGoogle(k))];
+  const html=chaves.map(k=>renderCampoCompletoGoogle(k,dados[k])).filter(Boolean).join('');
+  if(conteudo) conteudo.innerHTML=html || '<div class="text-sm text-zinc-500">O Google não retornou campos preenchidos para este contato.</div>';
+
+  document.getElementById('modal-google-contatos')?.classList.add('hidden');
+  document.getElementById('modal-google-contato-detalhe')?.classList.remove('hidden');
+}
+
+function selecionarContatoGoogle(i){
+  const c=googleContatosCache[i];
+  if(!c) return;
+  abrirDetalheContatoGoogle(c);
+}
+
+function fecharDetalheContatoGoogle(){
+  document.getElementById('modal-google-contato-detalhe')?.classList.add('hidden');
+  document.getElementById('modal-google-contatos')?.classList.remove('hidden');
+}
+
+async function copiarTextoGoogle(texto){
+  if(!texto) return;
+  try{ await navigator.clipboard.writeText(String(texto)); }
+  catch(e){
+    const ta=document.createElement('textarea');
+    ta.value=String(texto); document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+  }
+}
+
+async function copiarTodosDadosGoogle(){
+  const c=googleContatoAtual;
+  if(!c) return;
+  const dados=c.dados || {};
+  const linhas=[];
+  for(const [chave,valor] of Object.entries(dados)){
+    if(campoInternoGoogle(chave)) continue;
+    const texto=valorLegivelGoogle(valor,chave);
+    if(texto) linhas.push(`${rotuloCampoGoogle(chave)}: ${texto}`);
+  }
+  await copiarTextoGoogle(linhas.join('\n'));
+}
+
+function usarContatoGoogleAtual(){
+  const c=googleContatoAtual;
+  if(!c) return;
+  preencherClientePorGoogle(c.nome,c.telefone,c.email,c.endereco);
+  document.getElementById('modal-google-contato-detalhe')?.classList.add('hidden');
+  googleContatoAtual=null;
+}
+
+function preencherClientePorGoogle(nome,telefone,email,endereco){
+  const aba=abaAtual;
+  if(aba==='orc'){
+    document.getElementById('orc_cliente_nome').value=nome||'';
+    document.getElementById('orc_cliente_telefone').value=telefone||'';
+    document.getElementById('orc_cliente_email').value=email||'';
+    document.getElementById('orc_cliente_endereco').value=endereco||'';
+  }else if(aba==='os'){
+    document.getElementById('os_cliente_nome').value=nome||'';
+    document.getElementById('os_cliente_telefone').value=telefone||'';
+    document.getElementById('os_cliente_email').value=email||'';
+    document.getElementById('os_endereco_obra').value=endereco||'';
+  }else if(aba==='ter'){
+    document.getElementById('ter_cliente_nome').value=nome||'';
+    atualizarPreviewTER();
+  }
+}
+
+// Mostrar/ocultar senha na tela de login
+function toggleLoginSenha(){
+  const campo=document.getElementById('login-senha');
+  const olho=document.getElementById('login-senha-olho');
+  if(!campo || !olho) return;
+  if(campo.type==='password'){
+    campo.type='text';
+    olho.textContent='🙈';
+    olho.parentElement.setAttribute('aria-label','Ocultar senha');
+  }else{
+    campo.type='password';
+    olho.textContent='👁️';
+    olho.parentElement.setAttribute('aria-label','Mostrar senha');
+  }
+}
+
+// AUTOCOMPLETE CLIENTE
+function preencherDatalists(){
+  try{
+  const clientes=Store.getTodosClientes();
+  const servicos=Store.getTodosServicos();
+  const orcs=Store.getOrcamentos();
+  const oss=Store.getOS();
+  const elCli=document.getElementById('lista-clientes'); if(elCli) elCli.innerHTML = clientes.map(c=>`<option value="${c.nome}">`).join('');
+  const elServ=document.getElementById('lista-servicos'); if(elServ) elServ.innerHTML = servicos.map(s=>`<option value="${s}">`).join('');
+  const elOrc=document.getElementById('lista-orc-numeros'); if(elOrc) elOrc.innerHTML = orcs.map(o=>`<option value="${o.numero}">${o.titulo||''} - ${o.cliente_nome||''}</option>`).join('');
+  const elOs=document.getElementById('lista-os-numeros'); if(elOs) elOs.innerHTML = oss.map(o=>`<option value="${o.numero}">${o.titulo||''} - ${o.cliente_nome||''}</option>`).join('');
+  // Also populate any additional datalists with same ids (multiple elements)
+  document.querySelectorAll('[id="lista-os-numeros"]').forEach(el=>{ if(el!==elOs) el.innerHTML = oss.map(o=>`<option value="${o.numero}">${o.titulo||''} - ${o.cliente_nome||''}</option>`).join(''); });
+  const servicosPrecos=Store.getServicosComPreco();
+  const materiaisPrecos=Store.getMateriaisComPreco();
+  const elDlServ=document.getElementById('dl-servicos-precos'); if(elDlServ) elDlServ.innerHTML = Object.keys(servicosPrecos).map(k=>`<option value="${k}">`).join('');
+  const elDlMat=document.getElementById('dl-materiais-precos'); if(elDlMat) elDlMat.innerHTML = Object.keys(materiaisPrecos).map(k=>`<option value="${k}">`).join('');
+  }catch(e){ console.warn('preencherDatalists erro', e); }
+}
+function autocompleteCliente(input, origem){
+  const val=input.value.toLowerCase();
+  if(val.length<2) return;
+  const clientes=Store.getTodosClientes();
+  const achados=clientes.filter(c=>c.nome.toLowerCase().includes(val)).slice(0,3);
+  const sugId = origem==='orc'?'orc_cliente_sug':null;
+  if(sugId && achados.length){
+    document.getElementById(sugId).innerHTML = achados.map(c=>`<button onclick="usarCliente('${c.nome.replace(/'/g,"")}','${origem}')" class="text-xs underline mr-2">${c.nome}</button>`).join('');
+  }
+  // auto preenche se exato
+  const exato=clientes.find(c=>c.nome.toLowerCase()===val);
+  if(exato){
+    if(origem==='orc'){
+      document.getElementById('orc_cliente_endereco').value=exato.endereco||'';
+      document.getElementById('orc_cliente_telefone').value=exato.telefone||'';
+      document.getElementById('orc_cliente_email').value=exato.email||'';
+    } else if(origem==='os'){
+      document.getElementById('os_cliente_telefone').value=exato.telefone||'';
+      document.getElementById('os_cliente_email').value=exato.email||'';
+      document.getElementById('os_endereco_obra').value=exato.endereco||'';
+    }
+  }
+}
+function usarCliente(nome, origem){
+  const clientes=Store.getTodosClientes();
+  const c=clientes.find(x=>x.nome===nome);
+  if(!c) return;
+  if(origem==='orc'){
+    document.getElementById('orc_cliente_nome').value=c.nome;
+    document.getElementById('orc_cliente_endereco').value=c.endereco||'';
+    document.getElementById('orc_cliente_telefone').value=c.telefone||'';
+    document.getElementById('orc_cliente_email').value=c.email||'';
+  } else if(origem==='os'){
+    document.getElementById('os_cliente_nome').value=c.nome;
+    document.getElementById('os_cliente_telefone').value=c.telefone||'';
+    document.getElementById('os_cliente_email').value=c.email||'';
+    document.getElementById('os_endereco_obra').value=c.endereco||'';
+  }
+}
+
+// INTERLIGAÇÃO
+function puxarORCparaOS(){
+  const num=document.getElementById('os_orc_numero').value.trim();
+  const orc=Store.getOrcamentos().find(o=>o.numero===num);
+  if(!orc) return;
+  document.getElementById('os_cliente_nome').value=orc.cliente_nome||'';
+  document.getElementById('os_cliente_telefone').value=orc.cliente_telefone||'';
+  document.getElementById('os_cliente_email').value=orc.cliente_email||'';
+  document.getElementById('os_endereco_obra').value=orc.cliente_endereco||'';
+  document.getElementById('os_titulo').value=orc.titulo||'';
+  document.getElementById('os_descricao').value=orc.descricao_servicos||'';
+  if(!document.getElementById('os_mao_obra').value) document.getElementById('os_mao_obra').value=orc.valor_mao_obra||'';
+  if(!document.getElementById('os_materiais').value) document.getElementById('os_materiais').value=orc.valor_materiais||'';
+  calcTotalOS();
+}
+
+function atualizarPreviewTER(){
+  const realizado = document.getElementById('ter_realizado_por')?.value || '__________________________';
+  const osNum = document.getElementById('ter_os_numero')?.value || '';
+  const orcNum = document.getElementById('ter_orc_numero')?.value || '';
+  const doc = osNum || orcNum || '__________________________';
+  const cliente = document.getElementById('ter_cliente_nome')?.value || '__________________________';
+  const endereco = document.getElementById('ter_endereco_preview')?.value || document.getElementById('ter_descricao')?.value?.substring(0,60) || '________________________________________________________';
+  const elR = document.getElementById('ter_preview_realizado');
+  const elD = document.getElementById('ter_preview_doc');
+  const elC = document.getElementById('ter_preview_cliente');
+  const elE = document.getElementById('ter_preview_endereco');
+  if(elR) elR.textContent = realizado;
+  if(elD) elD.textContent = doc;
+  if(elC) elC.textContent = cliente;
+  if(elE) elE.textContent = endereco;
+}
+
+function puxarOSparaTER(){
+  const num=document.getElementById('ter_os_numero').value.trim();
+  const os=Store.getOS().find(o=>o.numero===num);
+  if(!os) return;
+  document.getElementById('ter_cliente_nome').value=os.cliente_nome||'';
+  document.getElementById('ter_orc_numero').value=os.orc_numero||'';
+  document.getElementById('ter_descricao').value=os.descricao_servicos||''; atualizarPreviewTER();
+}
+
+// ANEXOS
+function addAnexo(tipo){
+  const id = tipo+'_anexos';
+  const div=document.getElementById(id);
+  const row=document.createElement('div');
+  row.className='flex gap-2';
+  row.innerHTML=`<input placeholder="Título ex: Foto obra" class="input flex-1"><input placeholder="https://..." class="input flex-[2]"><button onclick="this.parentElement.remove()" class="h-[42px] px-3 border rounded-xl text-xs">X</button>`;
+  div.appendChild(row);
+}
+function getAnexos(tipo){
+  const div=document.getElementById(tipo+'_anexos');
+  const rows=[...div.children];
+  return rows.map(r=>{
+    const inputs=r.querySelectorAll('input');
+    return {titulo:inputs[0]?.value||'', url:inputs[1]?.value||''};
+  }).filter(a=>a.titulo||a.url);
+}
+function setAnexos(tipo, lista){
+  const div=document.getElementById(tipo+'_anexos');
+  div.innerHTML='';
+  lista.forEach(a=>{
+    const row=document.createElement('div');
+    row.className='flex gap-2';
+    row.innerHTML=`<input value="${a.titulo||''}" class="input flex-1"><input value="${a.url||''}" class="input flex-[2]"><button onclick="this.parentElement.remove()" class="h-[42px] px-3 border rounded-xl text-xs">X</button>`;
+    div.appendChild(row);
+  });
+}
+
+// NOVOS
+function novoORC(){
+  document.getElementById('orc_numero').value=gerarNumero('ORC');
+  document.getElementById('orc_data').valueAsDate=new Date();
+  document.getElementById('orc_validade').valueAsDate=new Date(new Date().setDate(new Date().getDate()+15));
+  ['orc_titulo','orc_cliente_nome','orc_cliente_telefone','orc_cliente_email','orc_cliente_endereco','orc_descricao','orc_obs','orc_valor','orc_valor_mao_obra','orc_valor_materiais','orc_valor_total'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('orc_forma_pg').value='À vista';
+  document.getElementById('orc_anexos').innerHTML='';
+  document.getElementById('orc_servicos_itens').innerHTML='';
+  document.getElementById('orc_materiais_itens').innerHTML='';
+  document.getElementById('orc_subtotal_servicos').textContent='R$ 0,00';
+  document.getElementById('orc_subtotal_materiais').textContent='R$ 0,00';
+}
+function novoOS(){
+  document.getElementById('os_numero').value=gerarNumero('OS');
+  ['os_titulo','os_orc_numero','os_cliente_nome','os_cliente_telefone','os_cliente_email','os_endereco_obra','os_autorizado_por','os_descricao','os_comentarios','os_mao_obra','os_materiais','os_total','os_rep_nome','os_rep_cpf'].forEach(id=>document.getElementById(id).value='');
+}
+function novoTER(){
+  document.getElementById('ter_numero').value=gerarNumero('TER');
+  document.getElementById('ter_data').valueAsDate=new Date();
+  ['ter_os_numero','ter_orc_numero','ter_cliente_nome','ter_realizado_por','ter_descricao','ter_codigo_auth','ter_link_nota'].forEach(id=>document.getElementById(id).value='');
+}
+
+// CALC
+function calcTotalOS(){
+  const mo=parseFloat((document.getElementById('os_mao_obra').value||'').replace(/[^0-9.,]/g,'').replace(',','.'))||0;
+  const mat=parseFloat((document.getElementById('os_materiais').value||'').replace(/[^0-9.,]/g,'').replace(',','.'))||0;
+  const tot=mo+mat;
+  if(tot>0) document.getElementById('os_total').value=tot.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+}
+function formatarMoeda(inp){}
+function parseMoeda(v){ return parseFloat((v||'').toString().replace(/[^0-9,.-]/g,'').replace(/\.(?=\d{3}(,|$))/g,'').replace(',','.'))||0; }
+function fmtMoeda(v){ return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+
+// ITENS DE SERVIÇO E MATERIAL DO ORÇAMENTO (linha a linha, com preço)
+function addItemOrc(tipo, desc, valor){
+  desc = desc||''; valor = valor||'';
+  const containerId = tipo==='servico' ? 'orc_servicos_itens' : 'orc_materiais_itens';
+  const listId = tipo==='servico' ? 'dl-servicos-precos' : 'dl-materiais-precos';
+  const div=document.getElementById(containerId);
+  const row=document.createElement('div');
+  row.className='flex gap-2 item-row';
+  row.innerHTML=`<input value="${esc(desc)}" placeholder="${tipo==='servico'?'Descrição do serviço':'Descrição do material'}" class="input flex-1 item-desc" list="${listId}" oninput="autocompletarPrecoItem(this,'${tipo}')"><input value="${esc(valor)}" placeholder="R$" class="input w-[130px] item-valor" oninput="calcSubtotaisOrc()" onblur="salvarPrecoItem(this,'${tipo}')"><button type="button" onclick="this.parentElement.remove(); calcSubtotaisOrc()" class="h-[42px] px-3 border rounded-xl text-xs">X</button>`;
+  div.appendChild(row);
+}
+function getItensOrc(tipo){
+  const containerId = tipo==='servico' ? 'orc_servicos_itens' : 'orc_materiais_itens';
+  const rows=[...document.getElementById(containerId).children];
+  return rows.map(r=>({
+    desc: r.querySelector('.item-desc')?.value?.trim()||'',
+    valor: r.querySelector('.item-valor')?.value?.trim()||''
+  })).filter(i=>i.desc||i.valor);
+}
+function setItensOrc(tipo, lista){
+  const containerId = tipo==='servico' ? 'orc_servicos_itens' : 'orc_materiais_itens';
+  document.getElementById(containerId).innerHTML='';
+  (lista||[]).forEach(i=>addItemOrc(tipo, i.desc||i.descricao||'', i.valor||''));
+  calcSubtotaisOrc();
+}
+function calcSubtotaisOrc(){
+  const servicos=getItensOrc('servico');
+  const materiais=getItensOrc('material');
+  const subServ=servicos.reduce((s,i)=>s+parseMoeda(i.valor),0);
+  const subMat=materiais.reduce((s,i)=>s+parseMoeda(i.valor),0);
+  document.getElementById('orc_subtotal_servicos').textContent=fmtMoeda(subServ);
+  document.getElementById('orc_subtotal_materiais').textContent=fmtMoeda(subMat);
+  if(servicos.length) document.getElementById('orc_valor_mao_obra').value = fmtMoeda(subServ);
+  if(materiais.length) document.getElementById('orc_valor_materiais').value = fmtMoeda(subMat);
+  calcTotalOrc();
+}
+function calcTotalOrc(){
+  const mo=parseMoeda(document.getElementById('orc_valor_mao_obra').value);
+  const mat=parseMoeda(document.getElementById('orc_valor_materiais').value);
+  const tot=mo+mat;
+  if(tot>0) document.getElementById('orc_valor_total').value = fmtMoeda(tot);
+  document.getElementById('orc_valor').value = document.getElementById('orc_valor_total').value;
+}
+function autocompletarPrecoItem(input, tipo){
+  const val=(input.value||'').trim();
+  const map = tipo==='servico' ? Store.getServicosComPreco() : Store.getMateriaisComPreco();
+  if(map[val]!=null){
+    const row=input.closest('.item-row');
+    const valorInput=row.querySelector('.item-valor');
+    if(valorInput && !valorInput.value){ valorInput.value = map[val]; calcSubtotaisOrc(); }
+  }
+}
+function salvarPrecoItem(input, tipo){
+  const row=input.closest('.item-row');
+  const desc=row.querySelector('.item-desc')?.value?.trim();
+  const valor=input.value?.trim();
+  if(!desc || !valor) return;
+  if(tipo==='servico') Store.addServicoPreco(desc, valor); else Store.addMaterialPreco(desc, valor);
+  preencherDatalists();
+}
+
+// SALVAR
+function salvarORC(){
+  const numero=document.getElementById('orc_numero').value.trim()||gerarNumero('ORC');
+  calcSubtotaisOrc();
+  const obj={
+    numero,
+    data:document.getElementById('orc_data').value,
+    validade:document.getElementById('orc_validade').value,
+    titulo:document.getElementById('orc_titulo').value.trim(),
+    cliente_nome:document.getElementById('orc_cliente_nome').value.trim(),
+    cliente_telefone:document.getElementById('orc_cliente_telefone').value.trim(),
+    cliente_email:document.getElementById('orc_cliente_email').value.trim(),
+    cliente_endereco:document.getElementById('orc_cliente_endereco').value.trim(),
+    descricao_servicos:document.getElementById('orc_descricao').value.trim(),
+    observacoes:document.getElementById('orc_obs').value.trim(),
+    orc_servicos:getItensOrc('servico'),
+    orc_materiais:getItensOrc('material'),
+    valor_mao_obra:document.getElementById('orc_valor_mao_obra').value.trim(),
+    valor_materiais:document.getElementById('orc_valor_materiais').value.trim(),
+    valor_total:document.getElementById('orc_valor_total').value.trim(),
+    forma_pagamento:document.getElementById('orc_forma_pg').value,
+    valor:document.getElementById('orc_valor').value.trim(),
+    anexos:getAnexos('orc'),
+    criadoEm:new Date().toISOString()
+  };
+  if(!obj.cliente_nome){ alert('Nome do cliente obrigatório'); return; }
+  // salva preços novos na tabela de preços para reaproveitar em próximos orçamentos
+  obj.orc_servicos.forEach(i=>{ if(i.desc && i.valor) Store.addServicoPreco(i.desc, i.valor); });
+  obj.orc_materiais.forEach(i=>{ if(i.desc && i.valor) Store.addMaterialPreco(i.desc, i.valor); });
+  const lista=[obj, ...Store.getOrcamentos().filter(o=>o.numero!==numero)];
+  Store.setOrcamentos(lista);
+  document.getElementById('orc_status').textContent='Salvo! '+numero;
+  renderRecentes(); preencherDatalists();
+}
+function salvarOS(){
+  const numero=document.getElementById('os_numero').value.trim()||gerarNumero('OS');
+  const obj={
+    numero,
+    titulo:document.getElementById('os_titulo').value.trim(),
+    orc_numero:document.getElementById('os_orc_numero').value.trim(),
+    cliente_nome:document.getElementById('os_cliente_nome').value.trim(),
+    cliente_telefone:document.getElementById('os_cliente_telefone').value.trim(),
+    cliente_email:document.getElementById('os_cliente_email').value.trim(),
+    endereco_obra:document.getElementById('os_endereco_obra').value.trim(),
+    autorizado_por:document.getElementById('os_autorizado_por').value.trim(),
+    data_inicio:document.getElementById('os_data_inicio').value,
+    data_fim:document.getElementById('os_data_fim').value,
+    descricao_servicos:document.getElementById('os_descricao').value.trim(),
+    comentarios:document.getElementById('os_comentarios').value.trim(),
+    mao_obra:document.getElementById('os_mao_obra').value.trim(),
+    materiais:document.getElementById('os_materiais').value.trim(),
+    total:document.getElementById('os_total').value.trim(),
+    forma_pagamento:document.getElementById('os_forma_pg').value,
+    rep_nome:document.getElementById('os_rep_nome').value.trim(),
+    rep_cpf:document.getElementById('os_rep_cpf').value.trim(),
+    criadoEm:new Date().toISOString()
+  };
+  if(!obj.cliente_nome){ alert('Cliente obrigatório'); return; }
+  const lista=[obj, ...Store.getOS().filter(o=>o.numero!==numero)];
+  Store.setOS(lista);
+  document.getElementById('os_status').textContent='OS Salva! '+numero;
+  renderRecentesOS(); preencherDatalists();
+}
+function salvarTER(){
+  const numero=document.getElementById('ter_numero').value.trim()||gerarNumero('TER');
+  const obj={
+    numero,
+    os_numero:document.getElementById('ter_os_numero').value.trim(),
+    orc_numero:document.getElementById('ter_orc_numero').value.trim(),
+    data_entrega:document.getElementById('ter_data').value,
+    cliente_nome:document.getElementById('ter_cliente_nome').value.trim(),
+    realizado_por:document.getElementById('ter_realizado_por').value.trim(),
+    descricao_concluido:document.getElementById('ter_descricao').value.trim(),
+    codigo_auth:document.getElementById('ter_codigo_auth').value.trim(),
+    link_nota:document.getElementById('ter_link_nota').value.trim(),
+    criadoEm:new Date().toISOString()
+  };
+  if(!obj.cliente_nome){ alert('Cliente obrigatório'); return; }
+  const lista=[obj, ...Store.getTermos().filter(o=>o.numero!==numero)];
+  Store.setTermos(lista);
+  document.getElementById('ter_status').textContent='Termo Salvo! '+numero;
+  renderRecentesTER(); preencherDatalists();
+}
+
+// LISTAS
+function renderRecentes(){
+  const lista=Store.getOrcamentos().slice(0,5);
+  document.getElementById('lista-orc-recente').innerHTML = `<div class="card p-4"><b class="text-xs">Últimos ORCs</b><div class="mt-2 space-y-2">${lista.map(o=>`<div class="flex justify-between text-xs border-b py-2"><span><b>${o.numero}</b> - ${o.cliente_nome} - ${o.titulo}</span><button onclick="carregarORC('${o.numero}')" class="underline">Abrir</button></div>`).join('')||'Nenhum'}</div></div>`;
+}
+function renderRecentesOS(){
+  const lista=Store.getOS().slice(0,5);
+  document.getElementById('lista-os-recente').innerHTML = `<div class="card p-4"><b class="text-xs">Últimas OS</b><div class="mt-2 space-y-2">${lista.map(o=>`<div class="flex justify-between text-xs border-b py-2"><span><b>${o.numero}</b> - ${o.cliente_nome} - ORC ${o.orc_numero||''}</span><button onclick="carregarOS('${o.numero}')" class="underline">Abrir</button></div>`).join('')||'Nenhum'}</div></div>`;
+}
+function renderRecentesTER(){
+  const lista=Store.getTermos().slice(0,5);
+  document.getElementById('lista-ter-recente').innerHTML = `<div class="card p-4"><b class="text-xs">Últimos TERs</b><div class="mt-2 space-y-2">${lista.map(o=>`<div class="flex justify-between text-xs border-b py-2"><span><b>${o.numero}</b> - ${o.cliente_nome} - OS ${o.os_numero||''}</span><button onclick="carregarTER('${o.numero}')" class="underline">Abrir</button></div>`).join('')||'Nenhum'}</div></div>`;
+}
+
+function carregarORC(num){
+  const o=Store.getOrcamentos().find(x=>x.numero===num); if(!o) return;
+  document.getElementById('orc_numero').value=o.numero;
+  document.getElementById('orc_data').value=o.data||'';
+  document.getElementById('orc_validade').value=o.validade||'';
+  document.getElementById('orc_titulo').value=o.titulo||'';
+  document.getElementById('orc_cliente_nome').value=o.cliente_nome||'';
+  document.getElementById('orc_cliente_telefone').value=o.cliente_telefone||'';
+  document.getElementById('orc_cliente_email').value=o.cliente_email||'';
+  document.getElementById('orc_cliente_endereco').value=o.cliente_endereco||'';
+  document.getElementById('orc_descricao').value=o.descricao_servicos||'';
+  document.getElementById('orc_obs').value=o.observacoes||'';
+  document.getElementById('orc_valor').value=o.valor||'';
+  document.getElementById('orc_valor_mao_obra').value=o.valor_mao_obra||'';
+  document.getElementById('orc_valor_materiais').value=o.valor_materiais||'';
+  document.getElementById('orc_valor_total').value=o.valor_total||o.valor||'';
+  document.getElementById('orc_forma_pg').value=o.forma_pagamento||'À vista';
+  setItensOrc('servico', o.orc_servicos||[]);
+  setItensOrc('material', o.orc_materiais||[]);
+  setAnexos('orc', o.anexos||[]);
+  mostrarAba('orc'); window.scrollTo(0,0);
+}
+function carregarOS(num){
+  const o=Store.getOS().find(x=>x.numero===num); if(!o) return;
+  document.getElementById('os_numero').value=o.numero;
+  document.getElementById('os_titulo').value=o.titulo||'';
+  document.getElementById('os_orc_numero').value=o.orc_numero||'';
+  document.getElementById('os_cliente_nome').value=o.cliente_nome||'';
+  document.getElementById('os_cliente_telefone').value=o.cliente_telefone||'';
+  document.getElementById('os_cliente_email').value=o.cliente_email||'';
+  document.getElementById('os_endereco_obra').value=o.endereco_obra||'';
+  document.getElementById('os_autorizado_por').value=o.autorizado_por||'';
+  document.getElementById('os_data_inicio').value=o.data_inicio||'';
+  document.getElementById('os_data_fim').value=o.data_fim||'';
+  document.getElementById('os_descricao').value=o.descricao_servicos||'';
+  document.getElementById('os_comentarios').value=o.comentarios||'';
+  document.getElementById('os_mao_obra').value=o.mao_obra||'';
+  document.getElementById('os_materiais').value=o.materiais||'';
+  document.getElementById('os_total').value=o.total||'';
+  document.getElementById('os_forma_pg').value=o.forma_pagamento||'À vista';
+  document.getElementById('os_rep_nome').value=o.rep_nome||'';
+  document.getElementById('os_rep_cpf').value=o.rep_cpf||'';
+  mostrarAba('os'); window.scrollTo(0,0);
+}
+function carregarTER(num){
+  const o=Store.getTermos().find(x=>x.numero===num); if(!o) return;
+  document.getElementById('ter_numero').value=o.numero;
+  document.getElementById('ter_os_numero').value=o.os_numero||'';
+  document.getElementById('ter_orc_numero').value=o.orc_numero||'';
+  document.getElementById('ter_data').value=o.data_entrega||'';
+  document.getElementById('ter_cliente_nome').value=o.cliente_nome||'';
+  document.getElementById('ter_realizado_por').value=o.realizado_por||'';
+  document.getElementById('ter_descricao').value=o.descricao_concluido||'';
+  document.getElementById('ter_codigo_auth').value=o.codigo_auth||'';
+  document.getElementById('ter_link_nota').value=o.link_nota||'';
+  mostrarAba('ter'); window.scrollTo(0,0);
+}
+
+// BUSCA GERAL
+function renderBusca(){
+  const q=document.getElementById('busca_geral').value.toLowerCase();
+  const tipo=document.getElementById('filtro_tipo').value;
+  const orcs=Store.getOrcamentos().map(o=>({...o,_tipo:'ORC'}));
+  const oss=Store.getOS().map(o=>({...o,_tipo:'OS'}));
+  const ters=Store.getTermos().map(o=>({...o,_tipo:'TER'}));
+  let todos=[...orcs,...oss,...ters];
+  if(tipo!=='todos') todos=todos.filter(t=>t._tipo===tipo);
+  if(q) todos=todos.filter(t=> JSON.stringify(t).toLowerCase().includes(q));
+  todos=todos.slice(0,100);
+  document.getElementById('resultado_busca').innerHTML = todos.map(t=>`
+    <div class="border rounded-xl p-3 flex justify-between gap-2">
+      <div><b class="font-mono text-xs">${t.numero}</b> <span class="text-[10px] bg-zinc-900 text-white px-2 py-0.5 rounded-full">${t._tipo}</span><div class="text-sm font-bold">${t.cliente_nome||t.titulo||''}</div><div class="text-xs text-zinc-500">${(t.descricao_servicos||t.descricao_concluido||'').slice(0,120)}</div><div class="text-[11px] text-zinc-400">ORC:${t.orc_numero||t.numero||''} OS:${t.os_numero||''}</div></div>
+      <div class="flex flex-col gap-1"><button onclick="carregar${t._tipo}('${t.numero}')" class="h-7 px-3 bg-white border rounded-full text-xs">Abrir</button><button onclick="imprimirEspecifico('${t._tipo}','${t.numero}')" class="h-7 px-3 bg-zinc-900 text-white rounded-full text-xs">PDF</button></div>
+    </div>
+  `).join('')||'<div class="text-xs text-zinc-500">Nenhum resultado</div>';
+}
+
+// CONFIG
+function carregarConfigForm(){
+  const cfg=Store.getConfig();
+  document.getElementById('cfg_logo').value=cfg.logo_url||'';
+  document.getElementById('cfg_nome').value=cfg.nome_empresa||'';
+  document.getElementById('cfg_cnpj').value=cfg.cnpj||'';
+  document.getElementById('cfg_atividades').value=cfg.atividades||'';
+  document.getElementById('cfg_email').value=cfg.email||'';
+  document.getElementById('cfg_telefone').value=cfg.telefone||'';
+  document.getElementById('cfg_endereco').value=cfg.endereco||'';
+  document.getElementById('cfg_link_nota').value=cfg.link_nota||'';
+  document.getElementById('cfg_link_drive').value=cfg.link_drive||'';
+  const elCid=document.getElementById('cfg_google_client_id'); if(elCid) elCid.value=cfg.google_client_id||'';
+  const elKey=document.getElementById('cfg_google_api_key'); if(elKey) elKey.value=cfg.google_api_key||'';
+}
+function salvarConfig(){
+  const cfgAtual=Store.getConfig();
+  const cfg={
+    ...cfgAtual,
+    logo_url:document.getElementById('cfg_logo').value.trim(),
+    nome_empresa:document.getElementById('cfg_nome').value.trim(),
+    cnpj:document.getElementById('cfg_cnpj').value.trim(),
+    atividades:document.getElementById('cfg_atividades').value.trim(),
+    email:document.getElementById('cfg_email').value.trim(),
+    telefone:document.getElementById('cfg_telefone').value.trim(),
+    endereco:document.getElementById('cfg_endereco').value.trim(),
+    link_nota:document.getElementById('cfg_link_nota').value.trim(),
+    link_drive:document.getElementById('cfg_link_drive').value.trim()
+  };
+  Store.setConfig(cfg);
+  renderHeader();
+  alert('Cabeçalho salvo! Agora todos os PDFs usarão esse cabeçalho.');
+}
+function salvarConfigGoogle(){
+  const cfgAtual=Store.getConfig();
+  const cfg={
+    ...cfgAtual,
+    google_client_id:document.getElementById('cfg_google_client_id').value.trim(),
+    google_api_key:document.getElementById('cfg_google_api_key').value.trim()
+  };
+  Store.setConfig(cfg);
+  googleTokenClient=null; googleAccessToken=null;
+  alert('Integração Google salva! Clique no botão "Google" em qualquer campo de cliente para testar.');
+}
+function resetConfig(){
+  if(!confirm('Resetar cabeçalho para padrão?')) return;
+  localStorage.removeItem('gestor_config_v1');
+  carregarConfigForm(); renderHeader();
+}
+
+// IMPRESSÃO
+
+function getHeaderHTML(){
+  const cfg=Store.getConfig();
+  const partes=[];
+  if(cfg.logo_url) partes.push(`<img src="${cfg.logo_url}" style="width:60px;height:60px;object-fit:contain">`);
+  let linhas=[];
+  if(cfg.nome_empresa) linhas.push(`<b>${cfg.nome_empresa}</b>${cfg.cnpj?` - CNPJ ${cfg.cnpj}`:''}`);
+  if(cfg.atividades) linhas.push(`${cfg.atividades}`);
+  const l3=[cfg.email, cfg.telefone].filter(Boolean).join(' | ');
+  if(l3) linhas.push(l3);
+  if(cfg.endereco) linhas.push(cfg.endereco);
+  return `<div style="display:flex;gap:16px;border-bottom:2px solid #000;padding-bottom:12px;margin-bottom:16px">${partes.join('')}<div style="flex:1">${linhas.map(l=>`<div style="font-size:12px">${l}</div>`).join('')}</div></div>`;
+}
+
+function esc(s){
+  if(s===null||s===undefined) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function fmtData(d){
+  if(!d) return '';
+  try{
+    if(/^\d{4}-\d{2}-\d{2}$/.test(d)){
+      const parts=d.split('-');
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    const dt = new Date(d);
+    if(!isNaN(dt.getTime()) && String(d).length>4) return dt.toLocaleDateString('pt-BR');
+    return d;
+  }catch{return d}
+}
+function construirHTMLImpressao(tipo, obj){
+  const cfg = Store.getConfig();
+  const logo = cfg.logo_url ? `<img src="${esc(cfg.logo_url)}" style="width:70px;height:70px;object-fit:contain;border-radius:8px;border:1px solid #eee">` : '';
+  const linhasHeader = [];
+  if(cfg.nome_empresa) linhasHeader.push(`<div style="font-weight:800;font-size:15px">${esc(cfg.nome_empresa)}${cfg.cnpj?` <span style="font-weight:400">- CNPJ ${esc(cfg.cnpj)}</span>`:''}</div>`);
+  if(cfg.atividades) linhasHeader.push(`<div style="font-size:11px;color:#222;margin-top:3px;line-height:1.4">${esc(cfg.atividades)}</div>`);
+  const contato = [cfg.email, cfg.telefone].filter(Boolean).join(' | ');
+  if(contato) linhasHeader.push(`<div style="font-size:11px;color:#444;margin-top:3px">${esc(contato)}</div>`);
+  if(cfg.endereco) linhasHeader.push(`<div style="font-size:11px;color:#444">${esc(cfg.endereco)}</div>`);
+  const header = `<div style="display:flex;gap:16px;border-bottom:2.5px solid #111;padding-bottom:10px;margin-bottom:14px;align-items:flex-start">${logo}<div style="flex:1">${linhasHeader.join('')}</div><div style="text-align:right;font-size:10px;color:#666;line-height:1.4"><div style="font-weight:800;color:#111;font-size:12px">${esc(tipo)}</div><div style="font-family:monospace;font-size:11px">${esc(obj.numero||'')}</div><div>${new Date().toLocaleDateString('pt-BR')}</div></div></div>`;
+
+  let corpo = '';
+  if(tipo==='ORC'){
+    const modo = obj.print_mode || 'completo';
+    const servicos = obj.orc_servicos || [];
+    const materiais = obj.orc_materiais || [];
+    const subServ = servicos.reduce((s,i)=>s+parseMoeda(i.valor),0);
+    const subMat = materiais.reduce((s,i)=>s+parseMoeda(i.valor),0);
+    const totalCalc = subServ+subMat;
+    const totalExibir = obj.valor_total || (totalCalc>0 ? fmtMoeda(totalCalc) : (obj.valor||obj.total||'A combinar'));
+
+    let valoresHtml;
+    if(modo==='completo' && (servicos.length||materiais.length)){
+      const linha=i=>`<tr><td style="padding:6px 10px;border:1px solid #e2e8f0">${esc(i.desc)}</td><td style="padding:6px 10px;border:1px solid #e2e8f0;text-align:right;width:110px">${esc(i.valor)}</td></tr>`;
+      valoresHtml = `
+        ${servicos.length?`<div style="margin-top:16px"><div style="font-weight:800;font-size:12px;margin-bottom:6px;text-transform:uppercase">Serviços / Mão de obra</div><table style="width:100%;border-collapse:collapse;font-size:12px">${servicos.map(linha).join('')}<tr><td style="padding:6px 10px;font-weight:800;text-align:right;border:1px solid #e2e8f0;background:#f8fafc">Subtotal serviços</td><td style="padding:6px 10px;font-weight:800;text-align:right;border:1px solid #e2e8f0;background:#f8fafc">${esc(fmtMoeda(subServ))}</td></tr></table></div>`:''}
+        ${materiais.length?`<div style="margin-top:14px"><div style="font-weight:800;font-size:12px;margin-bottom:6px;text-transform:uppercase">Materiais</div><table style="width:100%;border-collapse:collapse;font-size:12px">${materiais.map(linha).join('')}<tr><td style="padding:6px 10px;font-weight:800;text-align:right;border:1px solid #e2e8f0;background:#f8fafc">Subtotal materiais</td><td style="padding:6px 10px;font-weight:800;text-align:right;border:1px solid #e2e8f0;background:#f8fafc">${esc(fmtMoeda(subMat))}</td></tr></table></div>`:''}
+        <div style="margin-top:14px;text-align:right;font-size:15px;font-weight:800;border-top:2px solid #111;padding-top:10px">VALOR TOTAL: ${esc(totalExibir)}</div>
+      `;
+    } else if(modo==='subtotais' && (servicos.length||materiais.length)){
+      valoresHtml = `
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:16px">
+          ${servicos.length?`<tr><td style="padding:8px 10px;background:#f8fafc;font-weight:700;border:1px solid #e2e8f0">Subtotal mão de obra</td><td style="padding:8px 10px;border:1px solid #e2e8f0;text-align:right">${esc(fmtMoeda(subServ))}</td></tr>`:''}
+          ${materiais.length?`<tr><td style="padding:8px 10px;background:#f8fafc;font-weight:700;border:1px solid #e2e8f0">Subtotal materiais</td><td style="padding:8px 10px;border:1px solid #e2e8f0;text-align:right">${esc(fmtMoeda(subMat))}</td></tr>`:''}
+          <tr><td style="padding:9px 10px;background:#111;color:#fff;font-weight:800;border:1px solid #111">VALOR TOTAL</td><td style="padding:9px 10px;border:1px solid #111;font-weight:800;text-align:right;background:#111;color:#fff">${esc(totalExibir)}</td></tr>
+        </table>`;
+    } else {
+      valoresHtml = `<div style="margin-top:16px;text-align:right;font-size:15px;font-weight:800;border-top:2px solid #111;padding-top:10px">VALOR TOTAL: ${esc(totalExibir)}</div>`;
+    }
+
+    corpo = `
+      <h1 style="font-size:20px;margin:0 0 14px 0;text-transform:uppercase;font-weight:800">Orçamento - ${esc(obj.numero||'')}</h1>
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:18px">
+        <tr><td style="padding:7px 10px;background:#f8fafc;width:140px;font-weight:700;border:1px solid #e2e8f0">Cliente</td><td style="padding:7px 10px;border:1px solid #e2e8f0">${esc(obj.cliente_nome||obj.cliente||'')}</td></tr>
+        ${obj.cliente_telefone||obj.cliente_email ? `<tr><td style="padding:7px 10px;background:#f8fafc;font-weight:700;border:1px solid #e2e8f0">Contato</td><td style="padding:7px 10px;border:1px solid #e2e8f0">${esc(obj.cliente_telefone||'')}${obj.cliente_email?` • ${esc(obj.cliente_email)}`:''}</td></tr>`:''}
+        <tr><td style="padding:7px 10px;background:#f8fafc;font-weight:700;border:1px solid #e2e8f0">Endereço obra</td><td style="padding:7px 10px;border:1px solid #e2e8f0">${esc(obj.cliente_endereco||obj.endereco||'')}</td></tr>
+        <tr><td style="padding:7px 10px;background:#f8fafc;font-weight:700;border:1px solid #e2e8f0">Título</td><td style="padding:7px 10px;border:1px solid #e2e8f0">${esc(obj.titulo||'')}</td></tr>
+        <tr><td style="padding:7px 10px;background:#f8fafc;font-weight:700;border:1px solid #e2e8f0">Data / Validade</td><td style="padding:7px 10px;border:1px solid #e2e8f0">${esc(fmtData(obj.data))} ${obj.validade?` • Validade: ${esc(fmtData(obj.validade))}`:''}</td></tr>
+        ${obj.forma_pagamento?`<tr><td style="padding:7px 10px;background:#f8fafc;font-weight:700;border:1px solid #e2e8f0">Forma de pagamento</td><td style="padding:7px 10px;border:1px solid #e2e8f0">${esc(obj.forma_pagamento)}</td></tr>`:''}
+      </table>
+      <div style="margin-top:16px"><div style="font-weight:800;font-size:12px;margin-bottom:6px;text-transform:uppercase">Descrição dos serviços</div><div style="white-space:pre-wrap;border:1.5px solid #e2e8f0;padding:14px;border-radius:12px;font-size:12.5px;line-height:1.6;background:#fcfdff">${esc(obj.descricao_servicos||obj.desc||'')}</div></div>
+      ${valoresHtml}
+      ${obj.observacoes||obj.obs ? `<div style="margin-top:16px"><div style="font-weight:800;font-size:12px;margin-bottom:6px;text-transform:uppercase">Observações / Condições</div><div style="white-space:pre-wrap;font-size:12.5px;line-height:1.6;border:1px dashed #cbd5e1;padding:12px;border-radius:10px">${esc(obj.observacoes||obj.obs)}</div></div>`:''}
+    `;
+  } else if(tipo==='OS'){
+    corpo = `
+      <h1 style="font-size:20px;margin:0 0 14px 0;font-weight:800">ORDEM DE SERVIÇO - ${esc(obj.numero||'')}</h1>
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:18px">
+        <tr><td style="padding:7px 10px;background:#f8fafc;width:140px;font-weight:700;border:1px solid #e2e8f0">Cliente</td><td style="padding:7px 10px;border:1px solid #e2e8f0">${esc(obj.cliente_nome||obj.cliente||'')}</td></tr>
+        <tr><td style="padding:7px 10px;background:#f8fafc;font-weight:700;border:1px solid #e2e8f0">Contato</td><td style="padding:7px 10px;border:1px solid #e2e8f0">${esc(obj.cliente_telefone||'')}${obj.cliente_email?` • ${esc(obj.cliente_email)}`:''}</td></tr>
+        <tr><td style="padding:7px 10px;background:#f8fafc;font-weight:700;border:1px solid #e2e8f0">Endereço obra</td><td style="padding:7px 10px;border:1px solid #e2e8f0">${esc(obj.endereco_obra||obj.cliente_endereco||obj.endereco||'')}</td></tr>
+        <tr><td style="padding:7px 10px;background:#f8fafc;font-weight:700;border:1px solid #e2e8f0">ORC origem</td><td style="padding:7px 10px;border:1px solid #e2e8f0">${esc(obj.orc_numero||obj.orc||'')} ${obj.titulo?`• ${esc(obj.titulo)}`:''}</td></tr>
+        <tr><td style="padding:7px 10px;background:#f8fafc;font-weight:700;border:1px solid #e2e8f0">Datas</td><td style="padding:7px 10px;border:1px solid #e2e8f0">Início: ${esc(fmtData(obj.data_inicio))} • Término: ${esc(fmtData(obj.data_fim))}</td></tr>
+        <tr><td style="padding:7px 10px;background:#f8fafc;font-weight:700;border:1px solid #e2e8f0">Autorizado por</td><td style="padding:7px 10px;border:1px solid #e2e8f0">${esc(obj.autorizado_por||'')}</td></tr>
+      </table>
+      <div style="margin-top:16px"><div style="font-weight:800;font-size:12px;margin-bottom:6px;text-transform:uppercase">Serviços autorizados</div><div style="white-space:pre-wrap;border:1.5px solid #e2e8f0;padding:14px;border-radius:12px;font-size:12.5px;line-height:1.6;background:#fcfdff">${esc(obj.descricao_servicos||obj.desc||'')}</div></div>
+      ${obj.comentarios ? `<div style="margin-top:14px"><div style="font-weight:700;font-size:12px;margin-bottom:4px">Comentários</div><div style="white-space:pre-wrap;font-size:12.5px">${esc(obj.comentarios)}</div></div>`:''}
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:18px">
+        <tr><td style="padding:9px;border:1px solid #e2e8f0;background:#f8fafc;font-weight:700">Mão de obra</td><td style="padding:9px;border:1px solid #e2e8f0">${esc(obj.mao_obra||'')}</td><td style="padding:9px;border:1px solid #e2e8f0;background:#f8fafc;font-weight:700">Materiais</td><td style="padding:9px;border:1px solid #e2e8f0">${esc(obj.materiais||'')}</td><td style="padding:9px;border:1px solid #111;background:#111;color:#fff;font-weight:800">TOTAL</td><td style="padding:9px;border:1px solid #111;font-weight:800">${esc(obj.total||'')}</td></tr>
+        <tr><td colspan="6" style="padding:9px;border:1px solid #e2e8f0">Forma pagamento: <b>${esc(obj.forma_pagamento||obj.forma||'')}</b></td></tr>
+      </table>
+    `;
+  } else {
+    corpo = `
+      <div style="background:#fffbeb;border:1.5px solid #fde68a;padding:14px;border-radius:12px;font-size:12.5px;line-height:1.6;margin-bottom:18px">
+        Declaramos para os devidos fins que <b>${esc(obj.realizado_por||'Manoel Pedra')}</b> realizou os serviços solicitados conforme combinado no documento <b>${esc(obj.os_numero||obj.orc_numero||obj.numero||'')}</b> entregue para <b>${esc(obj.cliente_nome||obj.cliente||'')}</b>.
+      </div>
+      <h1 style="font-size:20px;margin:0 0 14px 0;font-weight:800">TERMO DE ENTREGA - ${esc(obj.numero||'')}</h1>
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:18px">
+        <tr><td style="padding:7px 10px;background:#f8fafc;width:140px;font-weight:700;border:1px solid #e2e8f0">Cliente</td><td style="padding:7px 10px;border:1px solid #e2e8f0">${esc(obj.cliente_nome||'')}</td></tr>
+        <tr><td style="padding:7px 10px;background:#f8fafc;font-weight:700;border:1px solid #e2e8f0">OS / ORC</td><td style="padding:7px 10px;border:1px solid #e2e8f0">OS ${esc(obj.os_numero||obj.os||'')} • ORC ${esc(obj.orc_numero||obj.orc||'')}</td></tr>
+        <tr><td style="padding:7px 10px;background:#f8fafc;font-weight:700;border:1px solid #e2e8f0">Data entrega</td><td style="padding:7px 10px;border:1px solid #e2e8f0">${esc(fmtData(obj.data||''))}</td></tr>
+        <tr><td style="padding:7px 10px;background:#f8fafc;font-weight:700;border:1px solid #e2e8f0">Realizado por</td><td style="padding:7px 10px;border:1px solid #e2e8f0">${esc(obj.realizado_por||'')}</td></tr>
+      </table>
+      <div style="margin-top:16px"><div style="font-weight:800;font-size:12px;margin-bottom:6px;text-transform:uppercase">Serviço concluído</div><div style="white-space:pre-wrap;border:1.5px solid #e2e8f0;padding:14px;border-radius:12px;font-size:12.5px;line-height:1.6;background:#fcfdff">${esc(obj.descricao_concluido||obj.descricao_servicos||obj.desc||'')}</div></div>
+      ${obj.codigo_auth||obj.auth ? `<div style="margin-top:16px;border:2px dashed #111;padding:12px;border-radius:10px"><div style="font-size:11px;font-weight:800">CÓDIGO AUTENTICAÇÃO GOV.BR</div><div style="font-family:monospace;font-size:13px;margin-top:6px;word-break:break-all">${esc(obj.codigo_auth||obj.auth||'')}</div></div>`:''}
+    `;
+  }
+  if(obj.anexos && obj.anexos.length){
+    const lista = obj.anexos.map(a=>`<div style="margin-bottom:6px">• <b>${esc(a.titulo||'Anexo')}</b> - <span style="word-break:break-all">${esc(a.url||'')}</span></div>`).join('');
+    corpo += `<div style="margin-top:18px"><div style="font-weight:800;font-size:12px;margin-bottom:8px;text-transform:uppercase">Anexos</div><div style="border:1px solid #e2e8f0;padding:12px;border-radius:10px;font-size:11.5px">${lista}</div></div>`;
+  }
+  corpo += `<div style="margin-top:28px;display:flex;justify-content:space-between;gap:32px"><div style="flex:1;text-align:center"><div style="border-top:1.5px solid #111;padding-top:8px;margin-top:30px;font-size:11px"><b>Prestador do Serviço</b><br>Assinatura / Carimbo</div></div><div style="flex:1;text-align:center"><div style="border-top:1.5px solid #111;padding-top:8px;margin-top:30px;font-size:11px"><b>${esc(obj.rep_nome||obj.cliente_nome||'Cliente')}</b><br>${obj.rep_cpf?`CPF: ${esc(obj.rep_cpf)}<br>`:''}Assinatura Cliente</div></div></div>`;
+  const rodape = `<div style="margin-top:20px;border-top:1px solid #e2e8f0;padding-top:8px;font-size:9.5px;color:#888;text-align:center">Gerado em ${new Date().toLocaleString('pt-BR')} • Gestor Service • Manoel Pedra • ${esc(obj.numero||'')}</div>`;
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(tipo)} ${esc(obj.numero||'')}</title><style>@page{margin:12mm 12mm} body{font-family:Inter, Arial, sans-serif;padding:24px;color:#0f172a;line-height:1.35;-webkit-print-color-adjust:exact;print-color-adjust:exact} @media print{body{padding:0!important} .no-print, #print-toolbar{display:none!important;visibility:hidden!important;height:0!important;overflow:hidden!important} .evitar-quebra{page-break-inside:avoid;break-inside:avoid}}</style></head><body>${header}${corpo}${rodape}</body></html>`;
+}
+
+function abrirPreviaImpressao(html){
+  const w = window.open('', '_blank');
+  if(!w){ alert('Seu navegador bloqueou a janela de pré-visualização. Permita pop-ups para este site e tente novamente.'); return; }
+  const toolbar = `<div id="print-toolbar" class="no-print" style="position:static;background:#18181b;color:#fff;padding:12px 18px;display:flex;gap:10px;justify-content:flex-end;align-items:center;z-index:999">
+    <span style="font-size:12px;opacity:.7;margin-right:auto">Pré-visualização — confira antes de imprimir</span>
+    <button onclick="window.print()" style="background:#ffbf00;color:#111;border:none;padding:9px 20px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px">🖨️ Imprimir / Salvar PDF</button>
+    <button onclick="window.close()" style="background:transparent;color:#fff;border:1px solid #52525b;padding:9px 18px;border-radius:8px;cursor:pointer;font-size:13px">Fechar</button>
+  </div>`;
+  const finalHtml = html.replace('<body>', '<body>'+toolbar);
+  w.document.open(); w.document.write(finalHtml); w.document.close();
+  // Garantia extra (além do CSS @media print): força esconder a barra no exato momento de imprimir,
+  // caso algum navegador/driver de impressão ignore a regra @media print.
+  const travarBarra = ()=>{
+    const tb = w.document.getElementById('print-toolbar');
+    if(!tb) return;
+    w.addEventListener('beforeprint', ()=>{ tb.style.setProperty('display','none','important'); });
+    w.addEventListener('afterprint', ()=>{ tb.style.removeProperty('display'); });
+  };
+  if(w.document.readyState==='complete') travarBarra(); else w.addEventListener('load', travarBarra);
+}
+// mantém nome antigo apontando para a nova função, por compatibilidade
+function imprimirComIframe(html){ abrirPreviaImpressao(html); }
+
+function imprimirDoc(tipoAtual, modoOrc){
+  let obj=null;
+  if(tipoAtual==='orc'){
+    document.getElementById('modal-print-orc')?.classList.add('hidden');
+    obj={ numero: document.getElementById('orc_numero')?.value||'', titulo: document.getElementById('orc_titulo')?.value||'', data: document.getElementById('orc_data')?.value||'', validade: document.getElementById('orc_validade')?.value||'', cliente_nome: document.getElementById('orc_cliente_nome')?.value||'', cliente_telefone: document.getElementById('orc_cliente_telefone')?.value||'', cliente_email: document.getElementById('orc_cliente_email')?.value||'', cliente_endereco: document.getElementById('orc_cliente_endereco')?.value||'', descricao_servicos: document.getElementById('orc_descricao')?.value||'', observacoes: document.getElementById('orc_obs')?.value||'', orc_servicos: (typeof getItensOrc==='function'?getItensOrc('servico'):[]), orc_materiais: (typeof getItensOrc==='function'?getItensOrc('material'):[]), valor_mao_obra: document.getElementById('orc_valor_mao_obra')?.value||'', valor_materiais: document.getElementById('orc_valor_materiais')?.value||'', valor_total: document.getElementById('orc_valor_total')?.value||'', forma_pagamento: document.getElementById('orc_forma_pg')?.value||'', valor: document.getElementById('orc_valor')?.value||'', print_mode: modoOrc||'completo', anexos: (typeof getAnexos==='function'?getAnexos('orc'):[]) };
+    abrirPreviaImpressao(construirHTMLImpressao('ORC', obj));
+  } else if(tipoAtual==='os'){
+    obj={ numero: document.getElementById('os_numero')?.value||'', titulo: document.getElementById('os_titulo')?.value||'', orc_numero: document.getElementById('os_orc_numero')?.value||'', cliente_nome: document.getElementById('os_cliente_nome')?.value||'', cliente_telefone: document.getElementById('os_cliente_telefone')?.value||'', cliente_email: document.getElementById('os_cliente_email')?.value||'', endereco_obra: document.getElementById('os_endereco_obra')?.value||'', autorizado_por: document.getElementById('os_autorizado_por')?.value||'', data_inicio: document.getElementById('os_data_inicio')?.value||'', data_fim: document.getElementById('os_data_fim')?.value||'', descricao_servicos: document.getElementById('os_descricao')?.value||'', comentarios: document.getElementById('os_comentarios')?.value||'', mao_obra: document.getElementById('os_mao_obra')?.value||'', materiais: document.getElementById('os_materiais')?.value||'', total: document.getElementById('os_total')?.value||'', forma_pagamento: document.getElementById('os_forma_pg')?.value||'', rep_nome: document.getElementById('os_rep_nome')?.value||'', rep_cpf: document.getElementById('os_rep_cpf')?.value||'' };
+    abrirPreviaImpressao(construirHTMLImpressao('OS', obj));
+  } else {
+    obj={ numero: document.getElementById('ter_numero')?.value||'', os_numero: document.getElementById('ter_os_numero')?.value||'', orc_numero: document.getElementById('ter_orc_numero')?.value||'', cliente_nome: document.getElementById('ter_cliente_nome')?.value||'', realizado_por: document.getElementById('ter_realizado_por')?.value||'', descricao_concluido: document.getElementById('ter_descricao')?.value||'', codigo_auth: document.getElementById('ter_codigo_auth')?.value||'', link_nota: document.getElementById('ter_link_nota')?.value||'', data: document.getElementById('ter_data')?.value||'' };
+    abrirPreviaImpressao(construirHTMLImpressao('TER', obj));
+  }
+}
+
+function imprimirEspecifico(tipo, numeroOrObj, maybeObj){
+  let obj=null;
+  if(typeof numeroOrObj==='object' && numeroOrObj!==null && !maybeObj){
+    obj = numeroOrObj;
+  } else if(maybeObj && typeof maybeObj==='object'){
+    obj = maybeObj;
+  } else {
+    const numero = numeroOrObj;
+    if(tipo==='ORC') obj = Store.getOrcamentos().find(o=>o.numero===numero);
+    if(tipo==='OS') obj = Store.getOS().find(o=>o.numero===numero);
+    if(tipo==='TER') obj = Store.getTermos().find(o=>o.numero===numero);
+  }
+  if(!obj){ alert('Documento não encontrado: '+numeroOrObj); return; }
+  const html = construirHTMLImpressao(tipo, obj);
+  abrirPreviaImpressao(html);
+}
+
+
+
+// === SISTEMA DE LOGIN + PERMISSOES (SUPABASE AUTH) ===
+let _sessaoAtual = null;
+function getSessao(){ return _sessaoAtual; }
+function isAdmin(){ const s=getSessao(); return !!s && s.role==='admin'; }
+function isLogado(){ return !!getSessao(); }
+function papelDoUsuario(user){
+  const role = user?.user_metadata?.role;
+  return role==='admin' ? 'admin' : 'operador';
+}
+function sessaoDoUsuario(user){
+  return { email:user.email, role:papelDoUsuario(user), nome:user.user_metadata?.nome||user.email, ts:Date.now() };
+}
+async function fazerLogin(){
+  const token = document.querySelector('[name="cf-turnstile-response"]')?.value;
+  if(!token){ alert("Confirme que você não é um robô"); return; }
+  const email=(document.getElementById('login-email').value||'').trim().toLowerCase();
+  const senha=(document.getElementById('login-senha').value||'');
+  const erroEl=document.getElementById('login-erro');
+  const infoEl=document.getElementById('login-info');
+  const btn=document.getElementById('btn-login');
+  erroEl.classList.add('hidden'); infoEl.classList.add('hidden');
+  const sb=getSupabase();
+  if(!sb){ erroEl.textContent='Não foi possível conectar ao Supabase. Verifique sua internet e tente novamente.'; erroEl.classList.remove('hidden'); return; }
+  if(!email || !senha){ erroEl.textContent='Preencha email e senha'; erroEl.classList.remove('hidden'); return; }
+  btn.disabled=true; btn.textContent='Entrando...';
+  try{
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: senha, options: { captchaToken: token } });
+    if(error || !data?.user){
+      erroEl.textContent = (error && error.message==='Invalid login credentials') ? 'Email ou senha incorretos' : (error?.message || 'Erro ao entrar');
+      erroEl.classList.remove('hidden');
+      return;
+    }
+    _sessaoAtual = sessaoDoUsuario(data.user);
+    mostrarApp();
+  }catch(e){
+    erroEl.textContent = 'Erro inesperado: ' + (e.message||e);
+    erroEl.classList.remove('hidden');
+  }finally{
+    btn.disabled=false; btn.textContent='Entrar';
+    if(window.turnstile) window.turnstile.reset();
+  }
+}
+async function esqueciSenha(){
+  const token = document.querySelector('[name="cf-turnstile-response"]')?.value;
+  if(!token){ alert("Confirme que você não é um robô"); return; }
+  const email=(document.getElementById('login-email').value||'').trim().toLowerCase();
+  const erroEl=document.getElementById('login-erro');
+  const infoEl=document.getElementById('login-info');
+  erroEl.classList.add('hidden'); infoEl.classList.add('hidden');
+  if(!email){ erroEl.textContent='Digite seu email no campo acima primeiro'; erroEl.classList.remove('hidden'); return; }
+  const sb=getSupabase();
+  if(!sb){ erroEl.textContent='Não foi possível conectar ao Supabase.'; erroEl.classList.remove('hidden'); return; }
+  try{
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: "https://manoelpedra.com.br/gestor-service/", captchaToken: token });
+    if(error){ erroEl.textContent=error.message; erroEl.classList.remove('hidden'); return; }
+    infoEl.textContent='Se este email estiver cadastrado, enviamos um link para redefinir a senha.';
+    infoEl.classList.remove('hidden');
+  }catch(e){
+    erroEl.textContent = 'Erro inesperado: ' + (e.message||e);
+    erroEl.classList.remove('hidden');
+  }finally{
+    if(window.turnstile) window.turnstile.reset();
+  }
+}
+async function fazerLogout(){ const sb=getSupabase(); if(sb) await sb.auth.signOut(); _sessaoAtual=null; location.reload(); }
+async function salvarNovaSenha(){
+  const s1=document.getElementById('nova-senha-1').value||'';
+  const s2=document.getElementById('nova-senha-2').value||'';
+  const erroEl=document.getElementById('nova-senha-erro');
+  const btn=document.getElementById('btn-nova-senha');
+  erroEl.classList.add('hidden');
+  if(s1.length<6){ erroEl.textContent='A senha precisa ter pelo menos 6 caracteres'; erroEl.classList.remove('hidden'); return; }
+  if(s1!==s2){ erroEl.textContent='As senhas não são iguais'; erroEl.classList.remove('hidden'); return; }
+  const sb=getSupabase();
+  if(!sb){ erroEl.textContent='Não foi possível conectar ao Supabase.'; erroEl.classList.remove('hidden'); return; }
+  btn.disabled=true; btn.textContent='Salvando...';
+  const { data, error } = await sb.auth.updateUser({ password: s1 });
+  btn.disabled=false; btn.textContent='Salvar nova senha';
+  if(error){ erroEl.textContent=error.message; erroEl.classList.remove('hidden'); return; }
+  document.getElementById('tela-nova-senha').classList.add('hidden');
+  if(data?.user){ _sessaoAtual=sessaoDoUsuario(data.user); mostrarApp(); }
+  else { document.getElementById('tela-login').classList.remove('hidden'); }
+  // limpa o token da URL
+  history.replaceState(null, '', window.location.pathname);
+}
+async function initAuth(){
+  const sb=getSupabase();
+  if(!sb){ document.getElementById('tela-login').classList.remove('hidden'); return; }
+  // Verifica ANTES de tudo se a URL veio de um link de recuperação de senha
+  // (#access_token=...&type=recovery ou ?type=recovery). Isso evita a corrida
+  // em que getSession() já enxerga a sessão temporária criada pelo token e
+  // manda o usuário direto pro app, sem passar pela tela de nova senha.
+  const urlTemRecovery = window.location.hash.includes('type=recovery') || window.location.search.includes('type=recovery');
+  if(urlTemRecovery){
+    document.getElementById('tela-login').classList.add('hidden');
+    document.getElementById('tela-nova-senha').classList.remove('hidden');
+  }
+  // Se o usuário veio do link de "esqueci minha senha", o Supabase dispara PASSWORD_RECOVERY
+  // ao processar o token que está na própria URL (#access_token=...&type=recovery).
+  sb.auth.onAuthStateChange((event)=>{
+    if(event==='SIGNED_OUT'){ _sessaoAtual=null; }
+    if(event==='PASSWORD_RECOVERY'){
+      document.getElementById('tela-login').classList.add('hidden');
+      document.getElementById('tela-nova-senha').classList.remove('hidden');
+    }
+  });
+  try{
+    const { data } = await sb.auth.getSession();
+    const naTelaRecuperacao = !document.getElementById('tela-nova-senha').classList.contains('hidden');
+    if(naTelaRecuperacao) return; // aguarda o usuário definir a nova senha
+    if(data?.session?.user){ _sessaoAtual=sessaoDoUsuario(data.session.user); mostrarApp(); }
+    else { document.getElementById('tela-login').classList.remove('hidden'); }
+  }catch(e){ document.getElementById('tela-login').classList.remove('hidden'); }
+}
+// TEMPLATE-02 INICIO
+function renderAppAposLogin(){
+const root=document.getElementById('app-root');
+if(root && root.children.length===0){
+root.appendChild(document.getElementById('app-template').content.cloneNode(true));
+}
+document.getElementById('app-template')?.remove();
+document.getElementById('tela-login')?.classList.add('hidden');
+document.getElementById('tela-nova-senha')?.classList.add('hidden');
+// INIT agora que o app existe
+novoORC(); novoOS(); novoTER();
+renderHeader(); carregarConfigForm(); preencherDatalists();
+renderRecentes(); renderRecentesOS(); renderRecentesTER();
+Store.syncFromSupabase().then(()=>{
+renderHeader(); preencherDatalists(); renderRecentes(); renderRecentesOS(); renderRecentesTER();
+});
+}
+// TEMPLATE-03 INICIO
+  function mostrarApp(){
+const sessao=getSessao();
+if(!sessao){ document.getElementById('tela-login').classList.remove('hidden'); return; }
+renderAppAposLogin();
+// TEMPLATE-03 FIM
+  const headerRight=document.getElementById('header-right')||document.querySelector('header');
+  if(headerRight && !document.getElementById('user-badge')){
+    const badge=document.createElement('div');
+    badge.id='user-badge';
+    badge.className='flex items-center gap-1.5 text-[11px] min-w-0 shrink';
+    badge.innerHTML=`<span class="px-2.5 py-1 rounded-full whitespace-nowrap truncate max-w-[92px] sm:max-w-[220px] ${sessao.role==='admin'?'bg-zinc-900 text-white':'bg-zinc-100 border'}">${sessao.role==='admin'?'👑':'🔧'} ${esc(sessao.nome)}</span><button onclick="fazerLogout()" class="underline text-zinc-500 shrink-0">Sair</button>`;
+    headerRight.insertBefore(badge, headerRight.firstChild);
+  }
+  aplicarPermissoes();
+}
+function aplicarPermissoes(){
+  const admin=isAdmin();
+  const btnConfig=document.getElementById('btn-config');
+  const abaConfig=document.getElementById('aba-config');
+  if(!admin){
+    if(btnConfig) btnConfig.style.display='none';
+    if(abaConfig && !abaConfig.classList.contains('hidden')){ mostrarAba('orc'); }
+    document.querySelectorAll('[onclick*="deletarORC"], [onclick*="deletarOS"], [onclick*="deletarTER"]').forEach(b=>b.style.display='none');
+    ['cfg_nome','cfg_cnpj','cfg_atividades','cfg_email','cfg_telefone','cfg_endereco','cfg_logo'].forEach(id=>{
+      const el=document.getElementById(id); if(el){ el.disabled=true; el.classList.add('opacity-50'); }
+    });
+  } else {
+    if(btnConfig) btnConfig.style.display='';
+    document.querySelectorAll('[onclick*="deletarORC"], [onclick*="deletarOS"], [onclick*="deletarTER"]').forEach(b=>b.style.display='');
+    ['cfg_nome','cfg_cnpj','cfg_atividades','cfg_email','cfg_telefone','cfg_endereco','cfg_logo'].forEach(id=>{
+      const el=document.getElementById(id); if(el){ el.disabled=false; el.classList.remove('opacity-50'); }
+    });
+  }
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  initAuth();
+  setInterval(aplicarPermissoes, 1500);
+});
+// TEMPLATE 05 Cod Removido
+window.addEventListener('gestor_sync', ()=>{ renderHeader(); preencherDatalists(); renderRecentes(); renderRecentesOS(); renderRecentesTER(); });
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
+</html>
